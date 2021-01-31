@@ -351,6 +351,8 @@ like a git repository).
 >
 > **Unless you know what you are doing, you should stick with the default**, and let `actorId` be
 > auto-generated.
+>
+> To get the `actorId` of the current node, call `Automerge.getActorId(doc)`.
 
 ### Undo and redo
 
@@ -402,10 +404,13 @@ options, with more under development:
 
 - Use `Automerge.getChanges()` and `Automerge.applyChanges()` to manually capture changes on one
   node and apply them on another.
-- [`Automerge.Connection`](https://github.com/automerge/automerge/blob/main/src/connection.js), is
+- [`Automerge.Connection`](https://github.com/automerge/automerge/blob/main/src/connection.js) is
   an implementation of a protocol that syncs up two nodes by determining missing changes and sending
   them to each other. The [automerge-net](https://github.com/automerge/automerge-net) repository
   contains an example that runs the Connection protocol over a simple TCP connection.
+- [Cevitxe](https://github.com/DevResults/cevitxe) uses Automerge behind a familiar Redux interface.
+  It provides multiple database adapters for persistence, and synchronization via a tiny relay
+  server that allows peers to connect to each other via WebSockets.
 - [automerge-client-server](https://gitlab.com/codewitchbella/automerge-client-server)
   ([usage example](https://github.com/automerge/automerge/issues/117)) runs the `Automerge.Connection`
   protocol over [WebSocket](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API).
@@ -696,6 +701,19 @@ database.publications.filter(pub => pub.title.startsWith('Designing'))
 
 // Like "SELECT publisher FROM publications"
 database.publications.map(pub => pub.publisher)
+```
+
+You can modify rows in a table like this:
+
+```js
+database = Automerge.change(database, doc => {
+  // Update a row
+  let book = doc.publications.byId('29f6cd15-61ff-460d-b7fb-39a5594f32d5')
+  book.isbn = '1449373321'
+
+  // Delete a row
+  doc.publications.remove('29f6cd15-61ff-460d-b7fb-39a5594f32d5')
+})
 ```
 
 Note that currently the `Automerge.Table` type does not enforce a schema. By convention, the row
