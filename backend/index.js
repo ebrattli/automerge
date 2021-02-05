@@ -248,6 +248,30 @@ function merge(local, remote) {
   return applyChanges(local, changes)
 }
 
+function createChange(request) {
+  const { actor, seq, deps, message } = request
+  const change = Map({ actor, seq, deps: fromJS(deps), message, ops: undoOps })
+  return change
+}
+
+function createUndoOp(op) {
+  let undoOps
+  if (op.get('action') === 'inc') {
+    // Undo increment by incrementing the negative value.
+    undoOps = List.of(Map({ action: 'inc', obj: objectId, key: op.get('key'), value: -op.get('value') }))
+  } else {
+    // If a key has been changed from one value to another, then set key to previous value..
+    undoOps = opSet.getIn(['byObject', objectId, '_keys', op.get('key')], List())
+      .map(ref => ref.filter((v, k) => ['action', 'obj', 'key', 'value', 'datatype'].includes(k)))
+  }
+  if (undoOps.isEmpty()) {
+    // If key has not had another value before, then delete the key from the object.
+    undoOps = List.of(Map({ action: 'del', obj: objectId, key: op.get('key') }))
+  }
+
+  return undoOps
+}
+
 /**
  * Undoes the last change by the local user in the node state `state`. The
  * `request` object contains all parts of the change except the operations;
@@ -265,23 +289,6 @@ function undo(state, request) {
   const change = Map({ actor, seq, deps: fromJS(deps), message, ops: undoOps })
 
   let opSet = state.get('opSet')
-  let redoOps = List().withMutations(redoOps => {
-    for (let op of undoOps) {
-      if (!['set', 'del', 'link', 'inc'].includes(op.get('action'))) {
-        throw new RangeError(`Unexpected operation type in undo history: ${op}`)
-      }
-      const fieldOps = OpSet.getFieldOps(opSet, op.get('obj'), op.get('key'))
-      if (op.get('action') === 'inc') {
-        redoOps.push(Map({action: 'inc', obj: op.get('obj'), key: op.get('key'), value: -op.get('value')}))
-      } else if (fieldOps.isEmpty()) {
-        redoOps.push(Map({action: 'del', obj: op.get('obj'), key: op.get('key')}))
-      } else {
-        for (let fieldOp of fieldOps) {
-          redoOps.push(fieldOp.remove('actor').remove('seq'))
-        }
-      }
-    }
-  })
 
   opSet = opSet
     .set('undoPos', undoPos - 1)

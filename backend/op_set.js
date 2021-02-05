@@ -64,8 +64,8 @@ function applyMake(opSet, op) {
   const objectId = op.get('obj')
   if (opSet.hasIn(['byObject', objectId, '_keys'])) throw new Error('Duplicate creation of object ' + objectId)
 
-  let edit = {action: 'create', obj: objectId}
-  let object = Map({_init: op, _inbound: Set(), _keys: Map()})
+  let edit = { action: 'create', obj: objectId }
+  let object = Map({ _init: op, _inbound: Set(), _keys: Map() })
   if (op.get('action') === 'makeMap') {
     edit.type = 'map'
   } else if (op.get('action') === 'makeTable') {
@@ -93,14 +93,14 @@ function applyInsert(opSet, op) {
     .setIn(['byObject', objectId, '_maxElem'], maxElem)
     .setIn(['byObject', objectId, '_insertion', elemId], op)
   return [opSet, [
-    {obj: objectId, type, action: 'maxElem', value: maxElem, path: getPath(opSet, objectId)}
+    { obj: objectId, type, action: 'maxElem', value: maxElem, path: getPath(opSet, objectId) }
   ]]
 }
 
 function getConflicts(ops) {
   const conflicts = []
   for (let op of ops.shift()) {
-    let conflict = {actor: op.get('actor'), value: op.get('value')}
+    let conflict = { actor: op.get('actor'), value: op.get('value') }
     if (op.get('action') === 'link') {
       conflict.link = true
     }
@@ -117,10 +117,10 @@ function patchList(opSet, objectId, index, elemId, action, ops) {
   const firstOp = ops ? ops.first() : null
   let elemIds = opSet.getIn(['byObject', objectId, '_elemIds'])
   let value = firstOp ? firstOp.get('value') : null
-  let edit = {action, type, obj: objectId, index, path: getPath(opSet, objectId)}
+  let edit = { action, type, obj: objectId, index, path: getPath(opSet, objectId) }
   if (firstOp && firstOp.get('action') === 'link') {
     edit.link = true
-    value = {obj: firstOp.get('value')}
+    value = { obj: firstOp.get('value') }
   }
 
   if (action === 'insert') {
@@ -173,7 +173,7 @@ function updateListElement(opSet, objectId, elemId) {
 function updateMapKey(opSet, objectId, type, key) {
   const ops = getFieldOps(opSet, objectId, key)
   const firstOp = ops.first()
-  let edit = {action: '', type, obj: objectId, key, path: getPath(opSet, objectId)}
+  let edit = { action: '', type, obj: objectId, key, path: getPath(opSet, objectId) }
 
   if (ops.isEmpty()) {
     edit.action = 'remove'
@@ -201,13 +201,13 @@ function applyAssign(opSet, op, topLevel) {
   if (opSet.has('undoLocal') && topLevel) {
     let undoOps
     if (op.get('action') === 'inc') {
-      undoOps = List.of(Map({action: 'inc', obj: objectId, key: op.get('key'), value: -op.get('value')}))
+      undoOps = List.of(Map({ action: 'inc', obj: objectId, key: op.get('key'), value: -op.get('value') }))
     } else {
       undoOps = opSet.getIn(['byObject', objectId, '_keys', op.get('key')], List())
         .map(ref => ref.filter((v, k) => ['action', 'obj', 'key', 'value', 'datatype'].includes(k)))
     }
     if (undoOps.isEmpty()) {
-      undoOps = List.of(Map({action: 'del', obj: objectId, key: op.get('key')}))
+      undoOps = List.of(Map({ action: 'del', obj: objectId, key: op.get('key') }))
     }
     opSet = opSet.update('undoLocal', undoLocal => undoLocal.concat(undoOps))
   }
@@ -219,7 +219,7 @@ function applyAssign(opSet, op, topLevel) {
     overwritten = List()
     remaining = ops.map(other => {
       if (other.get('action') === 'set' && typeof other.get('value') === 'number' &&
-          other.get('datatype') === 'counter' && !isConcurrent(opSet, other, op)) {
+        other.get('datatype') === 'counter' && !isConcurrent(opSet, other, op)) {
         return other.set('value', other.get('value') + op.get('value'))
       } else {
         return other
@@ -228,7 +228,7 @@ function applyAssign(opSet, op, topLevel) {
   } else {
     const priorOpsConcurrent = ops.groupBy(other => !!isConcurrent(opSet, other, op))
     overwritten = priorOpsConcurrent.get(false, List())
-    remaining   = priorOpsConcurrent.get(true,  List())
+    remaining = priorOpsConcurrent.get(true, List())
   }
 
   // If any links were overwritten, remove them from the index of inbound links
@@ -286,7 +286,7 @@ function applyOps(opSet, ops) {
     let diffs, action = op.get('action')
     if (['makeMap', 'makeList', 'makeText', 'makeTable'].includes(action)) {
       newObjects = newObjects.add(op.get('obj'))
-      ;[opSet, diffs] = applyMake(opSet, op)
+        ;[opSet, diffs] = applyMake(opSet, op)
     } else if (action === 'ins') {
       ;[opSet, diffs] = applyInsert(opSet, op)
     } else if (['set', 'del', 'link', 'inc'].includes(action)) {
@@ -310,14 +310,16 @@ function applyChange(opSet, change) {
   }
 
   const allDeps = transitiveDeps(opSet, change.get('deps').set(actor, seq - 1))
-  opSet = opSet.setIn(['states', actor], prior.push(Map({change, allDeps})))
+  opSet = opSet.setIn(['states', actor], prior.push(Map({ change, allDeps })))
 
-  let diffs, ops = change.get('ops').map(op => op.merge({actor, seq}))
-  ;[opSet, diffs] = applyOps(opSet, ops)
+  let diffs, ops = change.get('ops').map(op => op.merge({ actor, seq }))
+    ;[opSet, diffs] = applyOps(opSet, ops)
 
   const remainingDeps = opSet.get('deps')
     .filter((depSeq, depActor) => depSeq > allDeps.get(depActor, 0))
     .set(actor, seq)
+
+  change = change.set('undoLength', 0)
 
   opSet = opSet
     .set('deps', remainingDeps)
@@ -359,15 +361,15 @@ function pushUndoHistory(opSet) {
 
 function init() {
   return Map()
-    .set('states',   Map())
-    .set('history',  List())
+    .set('states', Map())
+    .set('history', List())
     .set('byObject', Map().set(ROOT_ID, Map().set('_keys', Map())))
-    .set('clock',    Map())
-    .set('deps',     Map())
-    .set('undoPos',   0)
+    .set('clock', Map())
+    .set('deps', Map())
+    .set('undoPos', 0)
     .set('undoStack', List())
     .set('redoStack', List())
-    .set('queue',    List())
+    .set('queue', List())
 }
 
 function addChange(opSet, change, isUndoable) {
@@ -377,7 +379,7 @@ function addChange(opSet, change, isUndoable) {
     // setting the undoLocal key enables undo history capture
     opSet = opSet.set('undoLocal', List())
     let diffs
-    ;[opSet, diffs] = applyQueuedOps(opSet)
+      ;[opSet, diffs] = applyQueuedOps(opSet)
     opSet = pushUndoHistory(opSet)
     return [opSet, diffs]
   } else {
@@ -430,10 +432,10 @@ function getParent(opSet, objectId, key) {
 }
 
 function lamportCompare(op1, op2) {
-  if (op1.get('elem' ) < op2.get('elem' )) return -1
-  if (op1.get('elem' ) > op2.get('elem' )) return  1
+  if (op1.get('elem') < op2.get('elem')) return -1
+  if (op1.get('elem') > op2.get('elem')) return 1
   if (op1.get('actor') < op2.get('actor')) return -1
-  if (op1.get('actor') > op2.get('actor')) return  1
+  if (op1.get('actor') > op2.get('actor')) return 1
   return 0
 }
 
@@ -441,7 +443,7 @@ function insertionsAfter(opSet, objectId, parentId, childId) {
   let childKey = null
   if (childId) {
     const parsedId = parseElemId(childId)
-    childKey = Map({actor: parsedId.actorId, elem: parsedId.counter})
+    childKey = Map({ actor: parsedId.actorId, elem: parsedId.counter })
   }
 
   return opSet
@@ -493,7 +495,7 @@ function getOpValue(opSet, op, context) {
   if (op.get('action') === 'link') {
     return context.instantiateObject(opSet, op.get('value'))
   } else if (op.get('action') === 'set') {
-    const result = {value: op.get('value')}
+    const result = { value: op.get('value') }
     if (op.get('datatype')) result.datatype = op.get('datatype')
     return result
   } else {
@@ -542,9 +544,9 @@ function listIterator(opSet, listId, context) {
   const next = () => {
     while (elem) {
       elem = getNext(opSet, listId, elem)
-      if (!elem) return {done: true}
+      if (!elem) return { done: true }
 
-      const result = {elemId: elem}
+      const result = { elemId: elem }
       const ops = getFieldOps(opSet, listId, elem)
       if (!ops.isEmpty()) {
         index += 1
@@ -557,11 +559,11 @@ function listIterator(opSet, listId, context) {
             .mapEntries(([_, op]) => [op.get('actor'), getOpValue(opSet, op, context)])
         }
       }
-      return {done: false, value: result}
+      return { done: false, value: result }
     }
   }
 
-  const iterator = {next}
+  const iterator = { next }
   iterator[Symbol.iterator] = () => { return iterator }
   return iterator
 }

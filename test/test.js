@@ -9,19 +9,19 @@ describe('Automerge', () => {
   describe('initialization ', () => {
     it('should initially be an empty map', () => {
       const doc = Automerge.init()
-      assert.deepEqual(doc, {})
+      assert.deepStrictEqual(doc, {})
     })
 
     it('should allow instantiating from an existing object', () => {
       const initialState = { birds: { wrens: 3, magpies: 4 } }
       const doc = Automerge.from(initialState)
-      assert.deepEqual(doc, initialState)
+      assert.deepStrictEqual(doc, initialState)
     })
 
     it('should allow merging of an object initialized with `from`', () => {
       let doc1 = Automerge.from({ cards: [] })
       let doc2 = Automerge.merge(Automerge.init(), doc1)
-      assert.deepEqual(doc2, { cards: [] })
+      assert.deepStrictEqual(doc2, { cards: [] })
     })
 
     it('should allow passing an actorId when instantiating from an existing object', () => {
@@ -32,34 +32,34 @@ describe('Automerge', () => {
 
     it('accepts an empty object as initial state', () => {
       const doc = Automerge.from({})
-      assert.deepEqual(doc, {})
+      assert.deepStrictEqual(doc, {})
     })
 
     it('accepts an array as initial state, but converts it to an object', () => {
       const doc = Automerge.from(['a', 'b', 'c'])
-      assert.deepEqual(doc, { '0': 'a', '1': 'b', '2': 'c' })
+      assert.deepStrictEqual(doc, { '0': 'a', '1': 'b', '2': 'c' })
     })
 
     it('accepts strings as initial values, but treats them as an array of characters', () => {
       const doc = Automerge.from('abc')
-      assert.deepEqual(doc, { '0': 'a', '1': 'b', '2': 'c' })
+      assert.deepStrictEqual(doc, { '0': 'a', '1': 'b', '2': 'c' })
     })
 
     it('ignores numbers provided as initial values', () => {
       const doc = Automerge.from(123)
-      assert.deepEqual(doc, {})
+      assert.deepStrictEqual(doc, {})
     })
 
     it('ignores booleans provided as initial values', () => {
       const doc1 = Automerge.from(false)
-      assert.deepEqual(doc1, {})
+      assert.deepStrictEqual(doc1, {})
       const doc2 = Automerge.from(true)
-      assert.deepEqual(doc2, {})
+      assert.deepStrictEqual(doc2, {})
     })
 
     it('should not enable undo after Automerge.from', () => {
       let doc = Automerge.from({cards: []})
-      assert.deepEqual(Automerge.canUndo(doc), false)
+      assert.deepStrictEqual(Automerge.canUndo(doc), false)
     })
   })
 
@@ -89,12 +89,12 @@ describe('Automerge', () => {
           doc.first = 'one'
           assert.strictEqual(doc.first, 'one')
           doc.second = 'two'
-          assert.deepEqual(doc, {
+          assert.deepStrictEqual(doc, {
             first: 'one', second: 'two'
           })
         })
-        assert.deepEqual(s1, {})
-        assert.deepEqual(s2, {first: 'one', second: 'two'})
+        assert.deepStrictEqual(s1, {})
+        assert.deepStrictEqual(s2, {first: 'one', second: 'two'})
       })
 
       it('should freeze objects if desired', () => {
@@ -131,8 +131,8 @@ describe('Automerge', () => {
           doc.value = 'c'
           assert.strictEqual(doc.value, 'c')
         })
-        assert.deepEqual(s1, {})
-        assert.deepEqual(s2, {value: 'c'})
+        assert.deepStrictEqual(s1, {})
+        assert.deepStrictEqual(s2, {value: 'c'})
       })
 
       it('should not record conflicts when writing the same field several times within one change', () => {
@@ -164,7 +164,7 @@ describe('Automerge', () => {
         assert.strictEqual(Object.keys(Automerge.getConflicts(s1, 'field')).length, 1)
         const resolved = Automerge.change(s1, doc => doc.field = s1.field)
         assert.notStrictEqual(resolved, s1)
-        assert.deepEqual(resolved, {field: s1.field})
+        assert.deepStrictEqual(resolved, {field: s1.field})
         assert.strictEqual(Automerge.getConflicts(resolved, 'field'), undefined)
       })
 
@@ -184,7 +184,7 @@ describe('Automerge', () => {
                           {[Automerge.getActorId(s1)]: 123},
                           {[Automerge.getActorId(s2)]: 321})
         const resolved = Automerge.change(s1, doc => doc.list[0] = s1.list[0])
-        assert.deepEqual(resolved, s1)
+        assert.deepStrictEqual(resolved, s1)
         assert.notStrictEqual(resolved, s1)
         assert.strictEqual(Automerge.getConflicts(resolved.list, 0), null)
       })
@@ -210,8 +210,8 @@ describe('Automerge', () => {
           s2 = Automerge.change(s1, doc2 => doc2.two = 2)
           doc1.one = 1
         })
-        assert.deepEqual(s1, {one: 1})
-        assert.deepEqual(s2, {two: 2})
+        assert.deepStrictEqual(s1, {one: 1})
+        assert.deepStrictEqual(s2, {two: 2})
       })
 
       it('should work with Object.assign merges', () => {
@@ -221,7 +221,7 @@ describe('Automerge', () => {
         s1 = Automerge.change(s1, doc1 => {
           doc1.stuff = Object.assign({}, doc1.stuff, {baz: 'updated!'})
         })
-        assert.deepEqual(s1, {stuff: {foo: 'bar', baz: 'updated!'}})
+        assert.deepStrictEqual(s1, {stuff: {foo: 'bar', baz: 'updated!'}})
       })
 
       it('should support Date objects in maps', () => {
@@ -250,8 +250,8 @@ describe('Automerge', () => {
         s1 = Automerge.change(s1, 'first change', doc => doc.field = 123)
         s2 = Automerge.emptyChange(s1, 'empty change')
         assert.notStrictEqual(s2, s1)
-        assert.deepEqual(s2, s1)
-        assert.deepEqual(Automerge.getHistory(s2).map(state => state.change.message),
+        assert.deepStrictEqual(s2, s1)
+        assert.deepStrictEqual(Automerge.getHistory(s2).map(state => state.change.message),
                          ['first change', 'empty change'])
       })
 
@@ -262,8 +262,8 @@ describe('Automerge', () => {
         s1 = Automerge.emptyChange(Automerge.merge(s1, s2))
         const history = Automerge.getHistory(s1)
         const emptyChange = history[history.length - 1].change
-        assert.deepEqual(emptyChange.deps, {[Automerge.getActorId(s2)]: 1})
-        assert.deepEqual(emptyChange.ops, [])
+        assert.deepStrictEqual(emptyChange.deps, {[Automerge.getActorId(s2)]: 1})
+        assert.deepStrictEqual(emptyChange.ops, [])
       })
     })
 
@@ -273,7 +273,7 @@ describe('Automerge', () => {
         s1 = Automerge.change(s1, 'set zap', doc => doc.zip = 'zap')
         assert.strictEqual(s1.foo, 'bar')
         assert.strictEqual(s1.zip, 'zap')
-        assert.deepEqual(s1, {foo: 'bar', zip: 'zap'})
+        assert.deepStrictEqual(s1, {foo: 'bar', zip: 'zap'})
       })
 
       it('should handle multi-property assignment', () => {
@@ -282,7 +282,7 @@ describe('Automerge', () => {
         })
         assert.strictEqual(s1.foo, 'bar')
         assert.strictEqual(s1.answer, 42)
-        assert.deepEqual(s1, {foo: 'bar', answer: 42})
+        assert.deepStrictEqual(s1, {foo: 'bar', answer: 42})
       })
 
       it('should handle root property deletion', () => {
@@ -290,7 +290,7 @@ describe('Automerge', () => {
         s1 = Automerge.change(s1, 'del foo', doc => { delete doc['foo'] })
         assert.strictEqual(s1.foo, undefined)
         assert.strictEqual(s1.something, null)
-        assert.deepEqual(s1, {something: null})
+        assert.deepStrictEqual(s1, {something: null})
       })
 
       it('should follow JS delete behavior', () => {
@@ -351,8 +351,8 @@ describe('Automerge', () => {
         s1 = Automerge.change(s1, 'second change', doc => {
           doc.nested.one = 1
         })
-        assert.deepEqual(s1, {nested: {foo: 'bar', one: 1}})
-        assert.deepEqual(s1.nested, {foo: 'bar', one: 1})
+        assert.deepStrictEqual(s1, {nested: {foo: 'bar', one: 1}})
+        assert.deepStrictEqual(s1.nested, {foo: 'bar', one: 1})
         assert.strictEqual(s1.nested.foo, 'bar')
         assert.strictEqual(s1.nested['foo'], 'bar')
         assert.strictEqual(s1.nested.one, 1)
@@ -363,8 +363,8 @@ describe('Automerge', () => {
         s1 = Automerge.change(s1, doc => {
           doc.textStyle = {bold: false, fontSize: 12}
         })
-        assert.deepEqual(s1, {textStyle: {bold: false, fontSize: 12}})
-        assert.deepEqual(s1.textStyle, {bold: false, fontSize: 12})
+        assert.deepStrictEqual(s1, {textStyle: {bold: false, fontSize: 12}})
+        assert.deepStrictEqual(s1.textStyle, {bold: false, fontSize: 12})
         assert.strictEqual(s1.textStyle.bold, false)
         assert.strictEqual(s1.textStyle.fontSize, 12)
       })
@@ -377,7 +377,7 @@ describe('Automerge', () => {
         assert.strictEqual(s1.textStyle.typeface, 'Optima')
         assert.strictEqual(s1.textStyle.bold, false)
         assert.strictEqual(s1.textStyle.fontSize, 14)
-        assert.deepEqual(s1.textStyle, {typeface: 'Optima', bold: false, fontSize: 14})
+        assert.deepStrictEqual(s1.textStyle, {typeface: 'Optima', bold: false, fontSize: 14})
       })
 
       it('should handle arbitrary-depth nesting', () => {
@@ -387,7 +387,7 @@ describe('Automerge', () => {
         s1 = Automerge.change(s1, doc => {
           doc.a.b.c.d.e.f.i = 'j'
         })
-        assert.deepEqual(s1, {a: { b: { c: { d: { e: { f: { g: 'h', i: 'j'}}}}}}})
+        assert.deepStrictEqual(s1, {a: { b: { c: { d: { e: { f: { g: 'h', i: 'j'}}}}}}})
         assert.strictEqual(s1.a.b.c.d.e.f.g, 'h')
         assert.strictEqual(s1.a.b.c.d.e.f.i, 'j')
       })
@@ -399,11 +399,11 @@ describe('Automerge', () => {
         s2 = Automerge.change(s1, 'change 2', doc => {
           doc.myPet = {species: 'koi', variety: '紅白', colors: {red: true, white: true, black: false}}
         })
-        assert.deepEqual(s1.myPet, {
+        assert.deepStrictEqual(s1.myPet, {
           species: 'dog', legs: 4, breed: 'dachshund'
         })
         assert.strictEqual(s1.myPet.breed, 'dachshund')
-        assert.deepEqual(s2.myPet, {
+        assert.deepStrictEqual(s2.myPet, {
           species: 'koi', variety: '紅白',
           colors: {red: true, white: true, black: false}
         })
@@ -415,7 +415,7 @@ describe('Automerge', () => {
         s1 = Automerge.change(s1, doc => doc.color = '#ff7f00')
         assert.strictEqual(s1.color, '#ff7f00')
         s1 = Automerge.change(s1, doc => doc.color = {red: 255, green: 127, blue: 0})
-        assert.deepEqual(s1.color, {red: 255, green: 127, blue: 0})
+        assert.deepStrictEqual(s1.color, {red: 255, green: 127, blue: 0})
         s1 = Automerge.change(s1, doc => doc.color = '#ff7f00')
         assert.strictEqual(s1.color, '#ff7f00')
       })
@@ -449,7 +449,7 @@ describe('Automerge', () => {
         })
         s1 = Automerge.change(s1, 'non-bold', doc => delete doc.textStyle['bold'])
         assert.strictEqual(s1.textStyle.bold, undefined)
-        assert.deepEqual(s1.textStyle, {typeface: 'Optima', fontSize: 12})
+        assert.deepStrictEqual(s1.textStyle, {typeface: 'Optima', fontSize: 12})
       })
 
       it('should handle deletion of references to a map', () => {
@@ -458,7 +458,7 @@ describe('Automerge', () => {
         })
         s1 = Automerge.change(s1, doc => delete doc['textStyle'])
         assert.strictEqual(s1.textStyle, undefined)
-        assert.deepEqual(s1, {title: 'Hello'})
+        assert.deepStrictEqual(s1, {title: 'Hello'})
       })
 
       it('should validate field names', () => {
@@ -473,8 +473,8 @@ describe('Automerge', () => {
         s1 = Automerge.change(s1, doc => doc.noodles = [])
         s1 = Automerge.change(s1, doc => doc.noodles.insertAt(0, 'udon', 'soba'))
         s1 = Automerge.change(s1, doc => doc.noodles.insertAt(1, 'ramen'))
-        assert.deepEqual(s1, {noodles: ['udon', 'ramen', 'soba']})
-        assert.deepEqual(s1.noodles, ['udon', 'ramen', 'soba'])
+        assert.deepStrictEqual(s1, {noodles: ['udon', 'ramen', 'soba']})
+        assert.deepStrictEqual(s1.noodles, ['udon', 'ramen', 'soba'])
         assert.strictEqual(s1.noodles[0], 'udon')
         assert.strictEqual(s1.noodles[1], 'ramen')
         assert.strictEqual(s1.noodles[2], 'soba')
@@ -483,8 +483,8 @@ describe('Automerge', () => {
 
       it('should handle assignment of a list literal', () => {
         s1 = Automerge.change(s1, doc => doc.noodles = ['udon', 'ramen', 'soba'])
-        assert.deepEqual(s1, {noodles: ['udon', 'ramen', 'soba']})
-        assert.deepEqual(s1.noodles, ['udon', 'ramen', 'soba'])
+        assert.deepStrictEqual(s1, {noodles: ['udon', 'ramen', 'soba']})
+        assert.deepStrictEqual(s1.noodles, ['udon', 'ramen', 'soba'])
         assert.strictEqual(s1.noodles[0], 'udon')
         assert.strictEqual(s1.noodles[1], 'ramen')
         assert.strictEqual(s1.noodles[2], 'soba')
@@ -506,9 +506,9 @@ describe('Automerge', () => {
       it('should handle deletion of list elements', () => {
         s1 = Automerge.change(s1, doc => doc.noodles = ['udon', 'ramen', 'soba'])
         s1 = Automerge.change(s1, doc => delete doc.noodles[1])
-        assert.deepEqual(s1.noodles, ['udon', 'soba'])
+        assert.deepStrictEqual(s1.noodles, ['udon', 'soba'])
         s1 = Automerge.change(s1, doc => doc.noodles.deleteAt(1))
-        assert.deepEqual(s1.noodles, ['udon'])
+        assert.deepStrictEqual(s1.noodles, ['udon'])
         assert.strictEqual(s1.noodles[0], 'udon')
         assert.strictEqual(s1.noodles[1], undefined)
         assert.strictEqual(s1.noodles[2], undefined)
@@ -518,7 +518,7 @@ describe('Automerge', () => {
       it('should handle assignment of individual list indexes', () => {
         s1 = Automerge.change(s1, doc => doc.japaneseFood = ['udon', 'ramen', 'soba'])
         s1 = Automerge.change(s1, doc => doc.japaneseFood[1] = 'sushi')
-        assert.deepEqual(s1.japaneseFood, ['udon', 'sushi', 'soba'])
+        assert.deepStrictEqual(s1.japaneseFood, ['udon', 'sushi', 'soba'])
         assert.strictEqual(s1.japaneseFood[0], 'udon')
         assert.strictEqual(s1.japaneseFood[1], 'sushi')
         assert.strictEqual(s1.japaneseFood[2], 'soba')
@@ -529,7 +529,7 @@ describe('Automerge', () => {
       it('should treat out-by-one assignment as insertion', () => {
         s1 = Automerge.change(s1, doc => doc.japaneseFood = ['udon'])
         s1 = Automerge.change(s1, doc => doc.japaneseFood[1] = 'sushi')
-        assert.deepEqual(s1.japaneseFood, ['udon', 'sushi'])
+        assert.deepStrictEqual(s1.japaneseFood, ['udon', 'sushi'])
         assert.strictEqual(s1.japaneseFood[0], 'udon')
         assert.strictEqual(s1.japaneseFood[1], 'sushi')
         assert.strictEqual(s1.japaneseFood[2], undefined)
@@ -544,7 +544,7 @@ describe('Automerge', () => {
       it('should allow bulk assignment of multiple list indexes', () => {
         s1 = Automerge.change(s1, doc => doc.noodles = ['udon', 'ramen', 'soba'])
         s1 = Automerge.change(s1, doc => Object.assign(doc.noodles, {0: 'うどん', 2: 'そば'}))
-        assert.deepEqual(s1.noodles, ['うどん', 'ramen', 'そば'])
+        assert.deepStrictEqual(s1.noodles, ['うどん', 'ramen', 'そば'])
         assert.strictEqual(s1.noodles[0], 'うどん')
         assert.strictEqual(s1.noodles[1], 'ramen')
         assert.strictEqual(s1.noodles[2], 'そば')
@@ -555,14 +555,14 @@ describe('Automerge', () => {
         s1 = Automerge.change(s1, doc => doc.noodles = [{type: 'ramen', dishes: ['tonkotsu', 'shoyu']}])
         s1 = Automerge.change(s1, doc => doc.noodles.push({type: 'udon', dishes: ['tempura udon']}))
         s1 = Automerge.change(s1, doc => doc.noodles[0].dishes.push('miso'))
-        assert.deepEqual(s1, {noodles: [
+        assert.deepStrictEqual(s1, {noodles: [
           {type: 'ramen', dishes: ['tonkotsu', 'shoyu', 'miso']},
           {type: 'udon', dishes: ['tempura udon']}
         ]})
-        assert.deepEqual(s1.noodles[0], {
+        assert.deepStrictEqual(s1.noodles[0], {
           type: 'ramen', dishes: ['tonkotsu', 'shoyu', 'miso']
         })
-        assert.deepEqual(s1.noodles[1], {
+        assert.deepStrictEqual(s1.noodles[1], {
           type: 'udon', dishes: ['tempura udon']
         })
       })
@@ -571,20 +571,20 @@ describe('Automerge', () => {
         s1 = Automerge.change(s1, doc => doc.noodleMatrix = [['ramen', 'tonkotsu', 'shoyu']])
         s1 = Automerge.change(s1, doc => doc.noodleMatrix.push(['udon', 'tempura udon']))
         s1 = Automerge.change(s1, doc => doc.noodleMatrix[0].push('miso'))
-        assert.deepEqual(s1.noodleMatrix, [['ramen', 'tonkotsu', 'shoyu', 'miso'], ['udon', 'tempura udon']])
-        assert.deepEqual(s1.noodleMatrix[0], ['ramen', 'tonkotsu', 'shoyu', 'miso'])
-        assert.deepEqual(s1.noodleMatrix[1], ['udon', 'tempura udon'])
+        assert.deepStrictEqual(s1.noodleMatrix, [['ramen', 'tonkotsu', 'shoyu', 'miso'], ['udon', 'tempura udon']])
+        assert.deepStrictEqual(s1.noodleMatrix[0], ['ramen', 'tonkotsu', 'shoyu', 'miso'])
+        assert.deepStrictEqual(s1.noodleMatrix[1], ['udon', 'tempura udon'])
       })
 
       it('should handle replacement of the entire list', () => {
         s1 = Automerge.change(s1, doc => doc.noodles = ['udon', 'soba', 'ramen'])
         s1 = Automerge.change(s1, doc => doc.japaneseNoodles = doc.noodles.slice())
         s1 = Automerge.change(s1, doc => doc.noodles = ['wonton', 'pho'])
-        assert.deepEqual(s1, {
+        assert.deepStrictEqual(s1, {
           noodles: ['wonton', 'pho'],
           japaneseNoodles: ['udon', 'soba', 'ramen']
         })
-        assert.deepEqual(s1.noodles, ['wonton', 'pho'])
+        assert.deepStrictEqual(s1.noodles, ['wonton', 'pho'])
         assert.strictEqual(s1.noodles[0], 'wonton')
         assert.strictEqual(s1.noodles[1], 'pho')
         assert.strictEqual(s1.noodles[2], undefined)
@@ -593,13 +593,13 @@ describe('Automerge', () => {
 
       it('should allow assignment to change the type of a list element', () => {
         s1 = Automerge.change(s1, doc => doc.noodles = ['udon', 'soba', 'ramen'])
-        assert.deepEqual(s1.noodles, ['udon', 'soba', 'ramen'])
+        assert.deepStrictEqual(s1.noodles, ['udon', 'soba', 'ramen'])
         s1 = Automerge.change(s1, doc => doc.noodles[1] = {type: 'soba', options: ['hot', 'cold']})
-        assert.deepEqual(s1.noodles, ['udon', {type: 'soba', options: ['hot', 'cold']}, 'ramen'])
+        assert.deepStrictEqual(s1.noodles, ['udon', {type: 'soba', options: ['hot', 'cold']}, 'ramen'])
         s1 = Automerge.change(s1, doc => doc.noodles[1] = ['hot soba', 'cold soba'])
-        assert.deepEqual(s1.noodles, ['udon', ['hot soba', 'cold soba'], 'ramen'])
+        assert.deepStrictEqual(s1.noodles, ['udon', ['hot soba', 'cold soba'], 'ramen'])
         s1 = Automerge.change(s1, doc => doc.noodles[1] = 'soba is the best')
-        assert.deepEqual(s1.noodles, ['udon', 'soba is the best', 'ramen'])
+        assert.deepStrictEqual(s1.noodles, ['udon', 'soba is the best', 'ramen'])
       })
 
       it('should allow list creation and assignment in the same change callback', () => {
@@ -616,20 +616,20 @@ describe('Automerge', () => {
           doc.noodles.push('udon')
           doc.noodles.deleteAt(0)
         })
-        assert.deepEqual(s1, {noodles: []})
+        assert.deepStrictEqual(s1, {noodles: []})
         // do the add-remove cycle twice, test for #151 (https://github.com/automerge/automerge/issues/151)
         s1 = Automerge.change(s1, doc => {
           doc.noodles.push('soba')
           doc.noodles.deleteAt(0)
         })
-        assert.deepEqual(s1, {noodles: []})
+        assert.deepStrictEqual(s1, {noodles: []})
       })
 
       it('should handle arbitrary-depth nesting', () => {
         s1 = Automerge.change(s1, doc => doc.maze = [[[[[[[['noodles', ['here']]]]]]]]])
         s1 = Automerge.change(s1, doc => doc.maze[0][0][0][0][0][0][0][1].unshift('found'))
-        assert.deepEqual(s1.maze, [[[[[[[['noodles', ['found', 'here']]]]]]]]])
-        assert.deepEqual(s1.maze[0][0][0][0][0][0][0][1][1], 'here')
+        assert.deepStrictEqual(s1.maze, [[[[[[[['noodles', ['found', 'here']]]]]]]]])
+        assert.deepStrictEqual(s1.maze[0][0][0][0][0][0][0][1][1], 'here')
       })
 
       it('should not allow several references to the same list object', () => {
@@ -717,7 +717,7 @@ describe('Automerge', () => {
       s3 = Automerge.merge(s1, s2)
       assert.strictEqual(s3.foo, 'bar')
       assert.strictEqual(s3.hello, 'world')
-      assert.deepEqual(s3, {foo: 'bar', hello: 'world'})
+      assert.deepStrictEqual(s3, {foo: 'bar', hello: 'world'})
       assert.strictEqual(Automerge.getConflicts(s3, 'foo'), undefined)
       assert.strictEqual(Automerge.getConflicts(s3, 'hello'), undefined)
     })
@@ -741,13 +741,13 @@ describe('Automerge', () => {
       s2 = Automerge.change(s2, doc => doc.counter.increment(3))
       s3 = Automerge.merge(s1, s2)
       if (Automerge.getActorId(s1) > Automerge.getActorId(s2)) {
-        assert.deepEqual(s3, {counter: new Automerge.Counter(1)})
-        assert.deepEqual(Automerge.getConflicts(s3, 'counter'), {
+        assert.deepStrictEqual(s3, {counter: new Automerge.Counter(1)})
+        assert.deepStrictEqual(Automerge.getConflicts(s3, 'counter'), {
           [Automerge.getActorId(s2)]: new Automerge.Counter(103)
         })
       } else {
-        assert.deepEqual(s3, {counter: new Automerge.Counter(103)})
-        assert.deepEqual(Automerge.getConflicts(s3, 'counter'), {
+        assert.deepStrictEqual(s3, {counter: new Automerge.Counter(103)})
+        assert.deepStrictEqual(Automerge.getConflicts(s3, 'counter'), {
           [Automerge.getActorId(s1)]: new Automerge.Counter(1)
         })
       }
@@ -758,13 +758,13 @@ describe('Automerge', () => {
       s2 = Automerge.change(s2, doc => doc.field = 'two')
       s3 = Automerge.merge(s1, s2)
       if (Automerge.getActorId(s1) > Automerge.getActorId(s2)) {
-        assert.deepEqual(s3, {field: 'one'})
-        assert.deepEqual(Automerge.getConflicts(s3, 'field'), {
+        assert.deepStrictEqual(s3, {field: 'one'})
+        assert.deepStrictEqual(Automerge.getConflicts(s3, 'field'), {
           [Automerge.getActorId(s2)]: 'two'
         })
       } else {
-        assert.deepEqual(s3, {field: 'two'})
-        assert.deepEqual(Automerge.getConflicts(s3, 'field'), {
+        assert.deepStrictEqual(s3, {field: 'two'})
+        assert.deepStrictEqual(Automerge.getConflicts(s3, 'field'), {
           [Automerge.getActorId(s1)]: 'one'
         })
       }
@@ -777,13 +777,13 @@ describe('Automerge', () => {
       s2 = Automerge.change(s2, doc => doc.birds[0] = 'goldfinch')
       s3 = Automerge.merge(s1, s2)
       if (Automerge.getActorId(s1) > Automerge.getActorId(s2)) {
-        assert.deepEqual(s3.birds, ['greenfinch'])
-        assert.deepEqual(Automerge.getConflicts(s3.birds, 0), {
+        assert.deepStrictEqual(s3.birds, ['greenfinch'])
+        assert.deepStrictEqual(Automerge.getConflicts(s3.birds, 0), {
           [Automerge.getActorId(s2)]: 'goldfinch'
         })
       } else {
-        assert.deepEqual(s3.birds, ['goldfinch'])
-        assert.deepEqual(Automerge.getConflicts(s3.birds, 0), {
+        assert.deepStrictEqual(s3.birds, ['goldfinch'])
+        assert.deepStrictEqual(Automerge.getConflicts(s3.birds, 0), {
           [Automerge.getActorId(s1)]: 'greenfinch'
         })
       }
@@ -797,17 +797,17 @@ describe('Automerge', () => {
       assertEqualsOneOf(s1.field, 'string', ['list'], {thing: 'map'})
 
       if (s1.field === 'string') {
-        assert.deepEqual(Automerge.getConflicts(s1, 'field'), {
+        assert.deepStrictEqual(Automerge.getConflicts(s1, 'field'), {
           [Automerge.getActorId(s2)]: ['list'],
           [Automerge.getActorId(s3)]: {thing: 'map'}
         })
       } else if (Automerge.equals(s1.field, ['list'])) {
-        assert.deepEqual(Automerge.getConflicts(s1, 'field'), {
+        assert.deepStrictEqual(Automerge.getConflicts(s1, 'field'), {
           [Automerge.getActorId(s1)]: 'string',
           [Automerge.getActorId(s3)]: {thing: 'map'}
         })
       } else if (Automerge.equals(s1.field, {thing: 'map'})) {
-        assert.deepEqual(Automerge.getConflicts(s1, 'field'), {
+        assert.deepStrictEqual(Automerge.getConflicts(s1, 'field'), {
           [Automerge.getActorId(s1)]: 'string',
           [Automerge.getActorId(s2)]: ['list']
         })
@@ -823,11 +823,11 @@ describe('Automerge', () => {
       s3 = Automerge.merge(s1, s2)
       assertEqualsOneOf(s3.field, 'string', {innerKey: 42})
       if (s3.field === 'string') {
-        assert.deepEqual(Automerge.getConflicts(s3, 'field'), {
+        assert.deepStrictEqual(Automerge.getConflicts(s3, 'field'), {
           [Automerge.getActorId(s2)]: {innerKey: 42}
         })
       } else {
-        assert.deepEqual(Automerge.getConflicts(s3, 'field'), {
+        assert.deepStrictEqual(Automerge.getConflicts(s3, 'field'), {
           [Automerge.getActorId(s1)]: 'string'
         })
       }
@@ -842,13 +842,13 @@ describe('Automerge', () => {
       s2 = Automerge.change(s2, doc => doc.list[0].key = 2)
       s3 = Automerge.merge(s1, s2)
       if (Automerge.getActorId(s1) > Automerge.getActorId(s2)) {
-        assert.deepEqual(s3.list, [{map1: true, key: 1}])
-        assert.deepEqual(Automerge.getConflicts(s3.list, 0), {
+        assert.deepStrictEqual(s3.list, [{map1: true, key: 1}])
+        assert.deepStrictEqual(Automerge.getConflicts(s3.list, 0), {
           [Automerge.getActorId(s2)]: {map2: true, key: 2}
         })
       } else {
-        assert.deepEqual(s3.list, [{map2: true, key: 2}])
-        assert.deepEqual(Automerge.getConflicts(s3.list, 0), {
+        assert.deepStrictEqual(s3.list, [{map2: true, key: 2}])
+        assert.deepStrictEqual(Automerge.getConflicts(s3.list, 0), {
           [Automerge.getActorId(s1)]: {map1: true, key: 1}
         })
       }
@@ -860,11 +860,11 @@ describe('Automerge', () => {
       s3 = Automerge.merge(s1, s2)
       assertEqualsOneOf(s3.config, {background: 'blue'}, {logo_url: 'logo.png'})
       if (s3.config.background === 'blue') {
-        assert.deepEqual(Automerge.getConflicts(s3, 'config'), {
+        assert.deepStrictEqual(Automerge.getConflicts(s3, 'config'), {
           [Automerge.getActorId(s2)]: {logo_url: 'logo.png'}
         })
       } else {
-        assert.deepEqual(Automerge.getConflicts(s3, 'config'), {
+        assert.deepStrictEqual(Automerge.getConflicts(s3, 'config'), {
           [Automerge.getActorId(s1)]: {background: 'blue'}
         })
       }
@@ -875,10 +875,10 @@ describe('Automerge', () => {
       s2 = Automerge.change(s2, doc => doc.field = 'two')
       s3 = Automerge.merge(s1, s2)
       s3 = Automerge.change(s3, doc => doc.field = 'three')
-      assert.deepEqual(s3, {field: 'three'})
+      assert.deepStrictEqual(s3, {field: 'three'})
       assert.strictEqual(Automerge.getConflicts(s3, 'field'), undefined)
       s2 = Automerge.merge(s2, s3)
-      assert.deepEqual(s2, {field: 'three'})
+      assert.deepStrictEqual(s2, {field: 'three'})
       assert.strictEqual(Automerge.getConflicts(s2, 'field'), undefined)
     })
 
@@ -888,7 +888,7 @@ describe('Automerge', () => {
       s1 = Automerge.change(s1, doc => doc.list.splice(1, 0, 'two'))
       s2 = Automerge.change(s2, doc => doc.list.push('four'))
       s3 = Automerge.merge(s1, s2)
-      assert.deepEqual(s3, {list: ['one', 'two', 'three', 'four']})
+      assert.deepStrictEqual(s3, {list: ['one', 'two', 'three', 'four']})
       assert.strictEqual(Automerge.getConflicts(s3, 'list'), undefined)
     })
 
@@ -900,7 +900,7 @@ describe('Automerge', () => {
       s3 = Automerge.merge(s1, s2)
       assertEqualsOneOf(s3.birds, ['parakeet', 'starling', 'chaffinch'], ['parakeet', 'chaffinch', 'starling'])
       s2 = Automerge.merge(s2, s1)
-      assert.deepEqual(s2, s3)
+      assert.deepStrictEqual(s2, s3)
     })
 
     it('should handle concurrent assignment and deletion of a map entry', () => {
@@ -910,9 +910,9 @@ describe('Automerge', () => {
       s1 = Automerge.change(s1, doc => delete doc['bestBird'])
       s2 = Automerge.change(s2, doc => doc.bestBird = 'magpie')
       s3 = Automerge.merge(s1, s2)
-      assert.deepEqual(s1, {})
-      assert.deepEqual(s2, {bestBird: 'magpie'})
-      assert.deepEqual(s3, {bestBird: 'magpie'})
+      assert.deepStrictEqual(s1, {})
+      assert.deepStrictEqual(s2, {bestBird: 'magpie'})
+      assert.deepStrictEqual(s3, {bestBird: 'magpie'})
       assert.strictEqual(Automerge.getConflicts(s3, 'bestBird'), undefined)
     })
 
@@ -924,9 +924,9 @@ describe('Automerge', () => {
       s1 = Automerge.change(s1, doc => doc.birds[1] = 'starling')
       s2 = Automerge.change(s2, doc => doc.birds.splice(1, 1))
       s3 = Automerge.merge(s1, s2)
-      assert.deepEqual(s1.birds, ['blackbird', 'starling', 'goldfinch'])
-      assert.deepEqual(s2.birds, ['blackbird', 'goldfinch'])
-      assert.deepEqual(s3.birds, ['blackbird', 'starling', 'goldfinch'])
+      assert.deepStrictEqual(s1.birds, ['blackbird', 'starling', 'goldfinch'])
+      assert.deepStrictEqual(s2.birds, ['blackbird', 'goldfinch'])
+      assert.deepStrictEqual(s3.birds, ['blackbird', 'starling', 'goldfinch'])
     })
 
     it('should handle concurrent deletion of the same element', () => {
@@ -935,7 +935,7 @@ describe('Automerge', () => {
       s1 = Automerge.change(s1, doc => doc.birds.deleteAt(1)) // buzzard
       s2 = Automerge.change(s2, doc => doc.birds.deleteAt(1)) // buzzard
       s3 = Automerge.merge(s1, s2)
-      assert.deepEqual(s3.birds, ['albatross','cormorant'])
+      assert.deepStrictEqual(s3.birds, ['albatross','cormorant'])
     })
 
     it('should handle concurrent deletion of different elements', () => {
@@ -944,7 +944,7 @@ describe('Automerge', () => {
       s1 = Automerge.change(s1, doc => doc.birds.deleteAt(0)) // albatross
       s2 = Automerge.change(s2, doc => doc.birds.deleteAt(1)) // buzzard
       s3 = Automerge.merge(s1, s2)
-      assert.deepEqual(s3.birds, ['cormorant'])
+      assert.deepStrictEqual(s3.birds, ['cormorant'])
     })
 
     it('should handle concurrent updates at different levels of the tree', () => {
@@ -954,14 +954,14 @@ describe('Automerge', () => {
       s1 = Automerge.change(s1, doc => doc.animals.birds.brown = 'sparrow')
       s2 = Automerge.change(s2, doc => delete doc.animals['birds'])
       s3 = Automerge.merge(s1, s2)
-      assert.deepEqual(s1.animals, {
+      assert.deepStrictEqual(s1.animals, {
         birds: {
           pink: 'flamingo', brown: 'sparrow', black: 'starling'
         },
         mammals: ['badger']
       })
-      assert.deepEqual(s2.animals, {mammals: ['badger']})
-      assert.deepEqual(s3.animals, {mammals: ['badger']})
+      assert.deepStrictEqual(s2.animals, {mammals: ['badger']})
+      assert.deepStrictEqual(s3.animals, {mammals: ['badger']})
     })
 
     it('should not interleave sequence insertions at the same position', () => {
@@ -983,7 +983,7 @@ describe('Automerge', () => {
         s1 = Automerge.change(s1, doc => doc.list = ['two'])
         s2 = Automerge.merge(s2, s1)
         s2 = Automerge.change(s2, doc => doc.list.splice(0, 0, 'one'))
-        assert.deepEqual(s2.list, ['one', 'two'])
+        assert.deepStrictEqual(s2.list, ['one', 'two'])
       })
 
       it('should handle insertion by lesser actor ID', () => {
@@ -992,14 +992,14 @@ describe('Automerge', () => {
         s1 = Automerge.change(s1, doc => doc.list = ['two'])
         s2 = Automerge.merge(s2, s1)
         s2 = Automerge.change(s2, doc => doc.list.splice(0, 0, 'one'))
-        assert.deepEqual(s2.list, ['one', 'two'])
+        assert.deepStrictEqual(s2.list, ['one', 'two'])
       })
 
       it('should handle insertion regardless of actor ID', () => {
         s1 = Automerge.change(s1, doc => doc.list = ['two'])
         s2 = Automerge.merge(s2, s1)
         s2 = Automerge.change(s2, doc => doc.list.splice(0, 0, 'one'))
-        assert.deepEqual(s2.list, ['one', 'two'])
+        assert.deepStrictEqual(s2.list, ['one', 'two'])
       })
 
       it('should make insertion order consistent with causality', () => {
@@ -1010,7 +1010,7 @@ describe('Automerge', () => {
         s1 = Automerge.change(s1, doc => doc.list.unshift('two'))
         s2 = Automerge.merge(s2, s1)
         s2 = Automerge.change(s2, doc => doc.list.unshift('one'))
-        assert.deepEqual(s2.list, ['one', 'two', 'three', 'four'])
+        assert.deepStrictEqual(s2.list, ['one', 'two', 'three', 'four'])
       })
     })
   })
@@ -1034,21 +1034,21 @@ describe('Automerge', () => {
     it('should undo an initial field assignment by deleting the field', () => {
       let s1 = Automerge.init()
       s1 = Automerge.change(s1, doc => doc.hello = 'world')
-      assert.deepEqual(s1, {hello: 'world'})
-      assert.deepEqual(getUndoStack(s1).last().toJS(),
+      assert.deepStrictEqual(s1, {hello: 'world'})
+      assert.deepStrictEqual(getUndoStack(s1).last().toJS(),
                        [{action: 'del', obj: ROOT_ID, key: 'hello'}])
       s1 = Automerge.undo(s1)
-      assert.deepEqual(s1, {})
+      assert.deepStrictEqual(s1, {})
     })
 
     it('should undo a field update by reverting to the previous value', () => {
       let s1 = Automerge.change(Automerge.init(), doc => doc.value = 3)
       s1 = Automerge.change(s1, doc => doc.value = 4)
-      assert.deepEqual(s1, {value: 4})
-      assert.deepEqual(getUndoStack(s1).last().toJS(),
+      assert.deepStrictEqual(s1, {value: 4})
+      assert.deepStrictEqual(getUndoStack(s1).last().toJS(),
                        [{action: 'set', obj: ROOT_ID, key: 'value', value: 3}])
       s1 = Automerge.undo(s1)
-      assert.deepEqual(s1, {value: 3})
+      assert.deepStrictEqual(s1, {value: 3})
     })
 
     it('should allow undoing multiple changes', () => {
@@ -1056,13 +1056,13 @@ describe('Automerge', () => {
       s1 = Automerge.change(s1, doc => doc.value = 1)
       s1 = Automerge.change(s1, doc => doc.value = 2)
       s1 = Automerge.change(s1, doc => doc.value = 3)
-      assert.deepEqual(s1, {value: 3})
+      assert.deepStrictEqual(s1, {value: 3})
       s1 = Automerge.undo(s1)
-      assert.deepEqual(s1, {value: 2})
+      assert.deepStrictEqual(s1, {value: 2})
       s1 = Automerge.undo(s1)
-      assert.deepEqual(s1, {value: 1})
+      assert.deepStrictEqual(s1, {value: 1})
       s1 = Automerge.undo(s1)
-      assert.deepEqual(s1, {})
+      assert.deepStrictEqual(s1, {})
       assert.strictEqual(Automerge.canUndo(s1), false)
     })
 
@@ -1072,21 +1072,21 @@ describe('Automerge', () => {
       let s2 = Automerge.merge(Automerge.init(), s1)
       s2 = Automerge.change(s2, doc => doc.s2 = 's2')
       s1 = Automerge.merge(s1, s2)
-      assert.deepEqual(s1, {s1: 's1.new', s2: 's2'})
+      assert.deepStrictEqual(s1, {s1: 's1.new', s2: 's2'})
       s1 = Automerge.undo(s1)
-      assert.deepEqual(s1, {s1: 's1.old', s2: 's2'})
+      assert.deepStrictEqual(s1, {s1: 's1.old', s2: 's2'})
     })
 
     it('should apply undos by growing the history', () => {
       let s1 = Automerge.change(Automerge.init(), 'set 1', doc => doc.value = 1)
       s1 = Automerge.change(s1, 'set 2', doc => doc.value = 2)
       let s2 = Automerge.merge(Automerge.init(), s1)
-      assert.deepEqual(s2, {value: 2})
+      assert.deepStrictEqual(s2, {value: 2})
       s1 = Automerge.undo(s1, 'undo!')
-      assert.deepEqual(Automerge.getHistory(s1).map(state => [state.change.seq, state.change.message]),
+      assert.deepStrictEqual(Automerge.getHistory(s1).map(state => [state.change.seq, state.change.message]),
                        [[1, 'set 1'], [2, 'set 2'], [3, 'undo!']])
       s2 = Automerge.merge(s2, s1)
-      assert.deepEqual(s1, {value: 1})
+      assert.deepStrictEqual(s1, {value: 1})
     })
 
     it("should ignore other actors' updates to an undo-reverted field", () => {
@@ -1095,72 +1095,72 @@ describe('Automerge', () => {
       let s2 = Automerge.merge(Automerge.init(), s1)
       s2 = Automerge.change(s2, doc => doc.value = 3)
       s1 = Automerge.merge(s1, s2)
-      assert.deepEqual(s1, {value: 3})
+      assert.deepStrictEqual(s1, {value: 3})
       s1 = Automerge.undo(s1)
-      assert.deepEqual(s1, {value: 1})
+      assert.deepStrictEqual(s1, {value: 1})
     })
 
     it('should undo object creation by removing the link', () => {
       let s1 = Automerge.init()
       s1 = Automerge.change(s1, doc => doc.settings = {background: 'white', text: 'black'})
-      assert.deepEqual(s1, {settings: {background: 'white', text: 'black'}})
-      assert.deepEqual(getUndoStack(s1).last().toJS(),
+      assert.deepStrictEqual(s1, {settings: {background: 'white', text: 'black'}})
+      assert.deepStrictEqual(getUndoStack(s1).last().toJS(),
                        [{action: 'del', obj: ROOT_ID, key: 'settings'}])
       s1 = Automerge.undo(s1)
-      assert.deepEqual(s1, {})
+      assert.deepStrictEqual(s1, {})
     })
 
     it('should undo primitive field deletion by setting the old value', () => {
       let s1 = Automerge.change(Automerge.init(), doc => { doc.k1 = 'v1'; doc.k2 = 'v2' })
       s1 = Automerge.change(s1, doc => delete doc.k2)
-      assert.deepEqual(s1, {k1: 'v1'})
-      assert.deepEqual(getUndoStack(s1).last().toJS(),
+      assert.deepStrictEqual(s1, {k1: 'v1'})
+      assert.deepStrictEqual(getUndoStack(s1).last().toJS(),
                        [{action: 'set', obj: ROOT_ID, key: 'k2', value: 'v2'}])
       s1 = Automerge.undo(s1)
-      assert.deepEqual(s1, {k1: 'v1', k2: 'v2'})
+      assert.deepStrictEqual(s1, {k1: 'v1', k2: 'v2'})
     })
 
     it('should undo link deletion by linking the old value', () => {
       let s1 = Automerge.change(Automerge.init(), doc => doc.fish = ['trout', 'sea bass'])
       s1 = Automerge.change(s1, doc => doc.birds = ['heron', 'magpie'])
       let s2 = Automerge.change(s1, doc => delete doc['fish'])
-      assert.deepEqual(s2, {birds: ['heron', 'magpie']})
-      assert.deepEqual(getUndoStack(s2).last().toJS(),
+      assert.deepStrictEqual(s2, {birds: ['heron', 'magpie']})
+      assert.deepStrictEqual(getUndoStack(s2).last().toJS(),
                        [{action: 'link', obj: ROOT_ID, key: 'fish', value: Automerge.getObjectId(s1.fish)}])
       s2 = Automerge.undo(s2)
-      assert.deepEqual(s2, {fish: ['trout', 'sea bass'], birds: ['heron', 'magpie']})
+      assert.deepStrictEqual(s2, {fish: ['trout', 'sea bass'], birds: ['heron', 'magpie']})
     })
 
     it('should undo list insertion by removing the new element', () => {
       let s1 = Automerge.change(Automerge.init(), doc => doc.list = ['A', 'B', 'C'])
       s1 = Automerge.change(s1, doc => doc.list.push('D'))
-      assert.deepEqual(s1, {list: ['A', 'B', 'C', 'D']})
+      assert.deepStrictEqual(s1, {list: ['A', 'B', 'C', 'D']})
       const elemId = Automerge.Frontend.getElementIds(s1.list)[3]
-      assert.deepEqual(getUndoStack(s1).last().toJS(),
+      assert.deepStrictEqual(getUndoStack(s1).last().toJS(),
                        [{action: 'del', obj: Automerge.getObjectId(s1.list), key: elemId}])
       s1 = Automerge.undo(s1)
-      assert.deepEqual(s1, {list: ['A', 'B', 'C']})
+      assert.deepStrictEqual(s1, {list: ['A', 'B', 'C']})
     })
 
     it('should undo list element deletion by re-assigning the old value', () => {
       let s1 = Automerge.change(Automerge.init(), doc => doc.list = ['A', 'B', 'C'])
       const elemId = Automerge.Frontend.getElementIds(s1.list)[1]
       s1 = Automerge.change(s1, doc => doc.list.splice(1, 1))
-      assert.deepEqual(s1, {list: ['A', 'C']})
-      assert.deepEqual(getUndoStack(s1).last().toJS(),
+      assert.deepStrictEqual(s1, {list: ['A', 'C']})
+      assert.deepStrictEqual(getUndoStack(s1).last().toJS(),
                        [{action: 'set', obj: Automerge.getObjectId(s1.list), key: elemId, value: 'B'}])
       s1 = Automerge.undo(s1)
-      assert.deepEqual(s1, {list: ['A', 'B', 'C']})
+      assert.deepStrictEqual(s1, {list: ['A', 'B', 'C']})
     })
 
     it('should undo counter increments', () => {
       let s1 = Automerge.change(Automerge.init(), doc => doc.counter = new Automerge.Counter())
       s1 = Automerge.change(s1, doc => doc.counter.increment())
-      assert.deepEqual(s1, {counter: new Automerge.Counter(1)})
-      assert.deepEqual(getUndoStack(s1).last().toJS(),
+      assert.deepStrictEqual(s1, {counter: new Automerge.Counter(1)})
+      assert.deepStrictEqual(getUndoStack(s1).last().toJS(),
                        [{action: 'inc', obj: ROOT_ID, key: 'counter', value: -1}])
       s1 = Automerge.undo(s1)
-      assert.deepEqual(s1, {counter: new Automerge.Counter(0)})
+      assert.deepStrictEqual(s1, {counter: new Automerge.Counter(0)})
     })
   })
 
@@ -1184,15 +1184,15 @@ describe('Automerge', () => {
       let s1 = Automerge.change(Automerge.init(), doc => doc.birds = [])
       s1 = Automerge.change(s1, doc => doc.birds.push('peregrine falcon'))
       s1 = Automerge.change(s1, doc => doc.birds.push('sparrowhawk'))
-      assert.deepEqual(s1, {birds: ['peregrine falcon', 'sparrowhawk']})
+      assert.deepStrictEqual(s1, {birds: ['peregrine falcon', 'sparrowhawk']})
       s1 = Automerge.undo(s1)
-      assert.deepEqual(s1, {birds: ['peregrine falcon']})
+      assert.deepStrictEqual(s1, {birds: ['peregrine falcon']})
       s1 = Automerge.undo(s1)
-      assert.deepEqual(s1, {birds: []})
+      assert.deepStrictEqual(s1, {birds: []})
       s1 = Automerge.redo(s1)
-      assert.deepEqual(s1, {birds: ['peregrine falcon']})
+      assert.deepStrictEqual(s1, {birds: ['peregrine falcon']})
       s1 = Automerge.redo(s1)
-      assert.deepEqual(s1, {birds: ['peregrine falcon', 'sparrowhawk']})
+      assert.deepStrictEqual(s1, {birds: ['peregrine falcon', 'sparrowhawk']})
     })
 
     it('should allow winding history backwards and forwards repeatedly', () => {
@@ -1205,11 +1205,11 @@ describe('Automerge', () => {
       for (let iteration = 0; iteration < 3; iteration++) {
         for (let undo = states.length - 2; undo >= 0; undo--) {
           s1 = Automerge.undo(s1)
-          assert.deepEqual(s1, states[undo])
+          assert.deepStrictEqual(s1, states[undo])
         }
         for (let redo = 1; redo < states.length; redo++) {
           s1 = Automerge.redo(s1)
-          assert.deepEqual(s1, states[redo])
+          assert.deepStrictEqual(s1, states[redo])
         }
       }
     })
@@ -1218,45 +1218,45 @@ describe('Automerge', () => {
       let s1 = Automerge.init()
       s1 = Automerge.change(s1, doc => doc.hello = 'world')
       s1 = Automerge.undo(s1)
-      assert.deepEqual(s1, {})
-      assert.deepEqual(getRedoStack(s1).last().toJS(),
+      assert.deepStrictEqual(s1, {})
+      assert.deepStrictEqual(getRedoStack(s1).last().toJS(),
                        [{action: 'set', obj: ROOT_ID, key: 'hello', value: 'world'}])
       s1 = Automerge.redo(s1)
-      assert.deepEqual(getRedoStack(s1).size, 0)
-      assert.deepEqual(s1, {hello: 'world'})
+      assert.deepStrictEqual(getRedoStack(s1).size, 0)
+      assert.deepStrictEqual(s1, {hello: 'world'})
     })
 
     it('should undo/redo a field update', () => {
       let s1 = Automerge.change(Automerge.init(), doc => doc.value = 3)
       s1 = Automerge.change(s1, doc => doc.value = 4)
       s1 = Automerge.undo(s1)
-      assert.deepEqual(s1, {value: 3})
-      assert.deepEqual(getRedoStack(s1).last().toJS(),
+      assert.deepStrictEqual(s1, {value: 3})
+      assert.deepStrictEqual(getRedoStack(s1).last().toJS(),
                        [{action: 'set', obj: ROOT_ID, key: 'value', value: 4}])
       s1 = Automerge.redo(s1)
-      assert.deepEqual(s1, {value: 4})
+      assert.deepStrictEqual(s1, {value: 4})
     })
 
     it('should undo/redo a field deletion', () => {
       let s1 = Automerge.change(Automerge.init(), doc => doc.value = 123)
       s1 = Automerge.change(s1, doc => delete doc.value)
       s1 = Automerge.undo(s1)
-      assert.deepEqual(s1, {value: 123})
-      assert.deepEqual(getRedoStack(s1).last().toJS(),
+      assert.deepStrictEqual(s1, {value: 123})
+      assert.deepStrictEqual(getRedoStack(s1).last().toJS(),
                        [{action: 'del', obj: ROOT_ID, key: 'value'}])
       s1 = Automerge.redo(s1)
-      assert.deepEqual(s1, {})
+      assert.deepStrictEqual(s1, {})
     })
 
     it('should undo/redo object creation and linking', () => {
       let s1 = Automerge.init()
       s1 = Automerge.change(s1, doc => doc.settings = {background: 'white', text: 'black'})
       let s2 = Automerge.undo(s1)
-      assert.deepEqual(s2, {})
-      assert.deepEqual(getRedoStack(s2).last().toJS(),
+      assert.deepStrictEqual(s2, {})
+      assert.deepStrictEqual(getRedoStack(s2).last().toJS(),
                        [{action: 'link', obj: ROOT_ID, key: 'settings', value: Automerge.getObjectId(s1.settings)}])
       s2 = Automerge.redo(s2)
-      assert.deepEqual(s2, {settings: {background: 'white', text: 'black'}})
+      assert.deepStrictEqual(s2, {settings: {background: 'white', text: 'black'}})
     })
 
     it('should undo/redo link deletion', () => {
@@ -1264,11 +1264,11 @@ describe('Automerge', () => {
       s1 = Automerge.change(s1, doc => doc.birds = ['heron', 'magpie'])
       s1 = Automerge.change(s1, doc => delete doc['fish'])
       s1 = Automerge.undo(s1)
-      assert.deepEqual(s1, {fish: ['trout', 'sea bass'], birds: ['heron', 'magpie']})
-      assert.deepEqual(getRedoStack(s1).last().toJS(),
+      assert.deepStrictEqual(s1, {fish: ['trout', 'sea bass'], birds: ['heron', 'magpie']})
+      assert.deepStrictEqual(getRedoStack(s1).last().toJS(),
                        [{action: 'del', obj: ROOT_ID, key: 'fish'}])
       s1 = Automerge.redo(s1)
-      assert.deepEqual(s1, {birds: ['heron', 'magpie']})
+      assert.deepStrictEqual(s1, {birds: ['heron', 'magpie']})
     })
 
     it('should undo/redo a list element insertion', () => {
@@ -1276,11 +1276,11 @@ describe('Automerge', () => {
       s1 = Automerge.change(s1, doc => doc.list.push('D'))
       const elemId = Automerge.Frontend.getElementIds(s1.list)[3]
       s1 = Automerge.undo(s1)
-      assert.deepEqual(s1, {list: ['A', 'B', 'C']})
-      assert.deepEqual(getRedoStack(s1).last().toJS(),
+      assert.deepStrictEqual(s1, {list: ['A', 'B', 'C']})
+      assert.deepStrictEqual(getRedoStack(s1).last().toJS(),
                        [{action: 'set', obj: Automerge.getObjectId(s1.list), key: elemId, value: 'D'}])
       s1 = Automerge.redo(s1)
-      assert.deepEqual(s1, {list: ['A', 'B', 'C', 'D']})
+      assert.deepStrictEqual(s1, {list: ['A', 'B', 'C', 'D']})
     })
 
     it('should undo/redo a list element deletion', () => {
@@ -1288,11 +1288,11 @@ describe('Automerge', () => {
       s1 = Automerge.change(s1, doc => doc.list.deleteAt(1))
       s1 = Automerge.undo(s1)
       const elemId = Automerge.Frontend.getElementIds(s1.list)[1]
-      assert.deepEqual(s1, {list: ['A', 'B', 'C']})
-      assert.deepEqual(getRedoStack(s1).last().toJS(),
+      assert.deepStrictEqual(s1, {list: ['A', 'B', 'C']})
+      assert.deepStrictEqual(getRedoStack(s1).last().toJS(),
                        [{action: 'del', obj: Automerge.getObjectId(s1.list), key: elemId}])
       s1 = Automerge.redo(s1)
-      assert.deepEqual(s1, {list: ['A', 'C']})
+      assert.deepStrictEqual(s1, {list: ['A', 'C']})
     })
 
     it('should undo/redo counter increments', () => {
@@ -1300,11 +1300,11 @@ describe('Automerge', () => {
       s1 = Automerge.change(s1, doc => doc.counter.increment())
       s1 = Automerge.change(s1, doc => doc.counter.increment())
       s1 = Automerge.undo(s1)
-      assert.deepEqual(s1, {counter: new Automerge.Counter(6)})
-      assert.deepEqual(getRedoStack(s1).last().toJS(),
+      assert.deepStrictEqual(s1, {counter: new Automerge.Counter(6)})
+      assert.deepStrictEqual(getRedoStack(s1).last().toJS(),
                        [{action: 'inc', obj: ROOT_ID, key: 'counter', value: 1}])
       s1 = Automerge.redo(s1)
-      assert.deepEqual(s1, {counter: new Automerge.Counter(7)})
+      assert.deepStrictEqual(s1, {counter: new Automerge.Counter(7)})
     })
 
     it('should redo assignments by other actors that precede the undo', () => {
@@ -1314,11 +1314,11 @@ describe('Automerge', () => {
       s2 = Automerge.change(s2, doc => doc.value = 3)
       s1 = Automerge.merge(s1, s2)
       s1 = Automerge.undo(s1)
-      assert.deepEqual(s1, {value: 1})
-      assert.deepEqual(getRedoStack(s1).last().toJS(),
+      assert.deepStrictEqual(s1, {value: 1})
+      assert.deepStrictEqual(getRedoStack(s1).last().toJS(),
                        [{action: 'set', obj: ROOT_ID, key: 'value', value: 3}])
       s1 = Automerge.redo(s1)
-      assert.deepEqual(s1, {value: 3})
+      assert.deepStrictEqual(s1, {value: 3})
     })
 
     it('should overwrite assignments by other actors that follow the undo', () => {
@@ -1328,11 +1328,11 @@ describe('Automerge', () => {
       let s2 = Automerge.merge(Automerge.init(), s1)
       s2 = Automerge.change(s2, doc => doc.value = 3)
       s1 = Automerge.merge(s1, s2)
-      assert.deepEqual(s1, {value: 3})
-      assert.deepEqual(getRedoStack(s1).last().toJS(),
+      assert.deepStrictEqual(s1, {value: 3})
+      assert.deepStrictEqual(getRedoStack(s1).last().toJS(),
                        [{action: 'set', obj: ROOT_ID, key: 'value', value: 2}])
       s1 = Automerge.redo(s1)
-      assert.deepEqual(s1, {value: 2})
+      assert.deepStrictEqual(s1, {value: 2})
     })
 
     it('should merge with concurrent changes to other fields', () => {
@@ -1342,9 +1342,9 @@ describe('Automerge', () => {
       let s2 = Automerge.merge(Automerge.init(), s1)
       s2 = Automerge.change(s2, doc => doc['salmon'] = 1)
       s1 = Automerge.merge(s1, s2)
-      assert.deepEqual(s1, {trout: 2, salmon: 1})
+      assert.deepStrictEqual(s1, {trout: 2, salmon: 1})
       s1 = Automerge.redo(s1)
-      assert.deepEqual(s1, {trout: 3, salmon: 1})
+      assert.deepStrictEqual(s1, {trout: 3, salmon: 1})
     })
 
     it('should apply redos by growing the history', () => {
@@ -1352,7 +1352,7 @@ describe('Automerge', () => {
       s1 = Automerge.change(s1, 'set 2', doc => doc.value = 2)
       s1 = Automerge.undo(s1, 'undo')
       s1 = Automerge.redo(s1, 'redo!')
-      assert.deepEqual(Automerge.getHistory(s1).map(state => [state.change.seq, state.change.message]),
+      assert.deepStrictEqual(Automerge.getHistory(s1).map(state => [state.change.seq, state.change.message]),
                        [[1, 'set 1'], [2, 'set 2'], [3, 'undo'], [4, 'redo!']])
     })
   })
@@ -1360,7 +1360,7 @@ describe('Automerge', () => {
   describe('saving and loading', () => {
     it('should save and restore an empty document', () => {
       let s = Automerge.load(Automerge.save(Automerge.init()))
-      assert.deepEqual(s, {})
+      assert.deepStrictEqual(s, {})
     })
 
     it('should generate a new random actor ID', () => {
@@ -1379,7 +1379,7 @@ describe('Automerge', () => {
     it('should reconstitute complex datatypes', () => {
       let s1 = Automerge.change(Automerge.init(), doc => doc.todos = [{title: 'water plants', done: false}])
       let s2 = Automerge.load(Automerge.save(s1))
-      assert.deepEqual(s2, {todos: [{title: 'water plants', done: false}]})
+      assert.deepStrictEqual(s2, {todos: [{title: 'water plants', done: false}]})
     })
 
     it('should reconstitute conflicts', () => {
@@ -1389,8 +1389,8 @@ describe('Automerge', () => {
       let s3 = Automerge.load(Automerge.save(s1))
       assert.strictEqual(s1.x, 5)
       assert.strictEqual(s3.x, 5)
-      assert.deepEqual(Automerge.getConflicts(s1, 'x'), {actor1: 3})
-      assert.deepEqual(Automerge.getConflicts(s3, 'x'), {actor1: 3})
+      assert.deepStrictEqual(Automerge.getConflicts(s1, 'x'), {actor1: 3})
+      assert.deepStrictEqual(Automerge.getConflicts(s3, 'x'), {actor1: 3})
     })
 
     it('should reconstitute element ID counters', () => {
@@ -1400,7 +1400,7 @@ describe('Automerge', () => {
       s = Automerge.change(s, doc => doc.list.deleteAt(0))
       s = Automerge.load(Automerge.save(s), 'actorid')
       s = Automerge.change(s, doc => doc.list.push('b'))
-      assert.deepEqual(s, {list: ['b']})
+      assert.deepStrictEqual(s, {list: ['b']})
       assert.strictEqual(Automerge.Frontend.getElementIds(s.list)[0], 'actorid:2')
     })
 
@@ -1420,13 +1420,13 @@ describe('Automerge', () => {
       doc = Automerge.load(Automerge.save(doc))
       doc = Automerge.change(doc, 'add', doc => doc.foo.push(1))
       doc = Automerge.load(Automerge.save(doc))
-      assert.deepEqual(doc.foo, [1])
+      assert.deepStrictEqual(doc.foo, [1])
     })
   })
 
   describe('history API', () => {
     it('should return an empty history for an empty document', () => {
-      assert.deepEqual(Automerge.getHistory(Automerge.init()), [])
+      assert.deepStrictEqual(Automerge.getHistory(Automerge.init()), [])
     })
 
     it('should make past document states accessible', () => {
@@ -1434,7 +1434,7 @@ describe('Automerge', () => {
       s = Automerge.change(s, doc => doc.config = {background: 'blue'})
       s = Automerge.change(s, doc => doc.birds = ['mallard'])
       s = Automerge.change(s, doc => doc.birds.unshift('oystercatcher'))
-      assert.deepEqual(Automerge.getHistory(s).map(state => state.snapshot), [
+      assert.deepStrictEqual(Automerge.getHistory(s).map(state => state.snapshot), [
         {config: {background: 'blue'}},
         {config: {background: 'blue'}, birds: ['mallard']},
         {config: {background: 'blue'}, birds: ['oystercatcher', 'mallard']}
@@ -1446,8 +1446,8 @@ describe('Automerge', () => {
       s = Automerge.change(s, 'Empty Bookshelf', doc => doc.books = [])
       s = Automerge.change(s, 'Add Orwell', doc => doc.books.push('Nineteen Eighty-Four'))
       s = Automerge.change(s, 'Add Huxley', doc => doc.books.push('Brave New World'))
-      assert.deepEqual(s.books, ['Nineteen Eighty-Four', 'Brave New World'])
-      assert.deepEqual(Automerge.getHistory(s).map(state => state.change.message),
+      assert.deepStrictEqual(s.books, ['Nineteen Eighty-Four', 'Brave New World'])
+      assert.deepStrictEqual(Automerge.getHistory(s).map(state => state.change.message),
                        ['Empty Bookshelf', 'Add Orwell', 'Add Huxley'])
     })
   })
@@ -1455,7 +1455,7 @@ describe('Automerge', () => {
   describe('.diff()', () => {
     it('should return an empty diff for the same document', () => {
       let s = Automerge.change(Automerge.init(), doc => doc.birds = [])
-      assert.deepEqual(Automerge.diff(s, s), [])
+      assert.deepStrictEqual(Automerge.diff(s, s), [])
     })
 
     it('should refuse to diff diverged documents', () => {
@@ -1471,10 +1471,10 @@ describe('Automerge', () => {
       let s2 = Automerge.change(s1, doc => doc.birds.push('Robin'))
       let s3 = Automerge.change(s2, doc => doc.birds.push('Wagtail'))
       const obj = Automerge.getObjectId(s1.birds)
-      assert.deepEqual(Automerge.diff(s1, s2), [
+      assert.deepStrictEqual(Automerge.diff(s1, s2), [
         {obj, path: ['birds'], type: 'list', action: 'insert', index: 0, value: 'Robin', elemId: `${Automerge.getActorId(s1)}:1`}
       ])
-      assert.deepEqual(Automerge.diff(s1, s3), [
+      assert.deepStrictEqual(Automerge.diff(s1, s3), [
         {obj, path: ['birds'], type: 'list', action: 'insert', index: 0, value: 'Robin', elemId: `${Automerge.getActorId(s1)}:1`},
         {obj, path: ['birds'], type: 'list', action: 'insert', index: 1, value: 'Wagtail', elemId: `${Automerge.getActorId(s1)}:2`}
       ])
@@ -1484,7 +1484,7 @@ describe('Automerge', () => {
       let s1 = Automerge.change(Automerge.init(), doc => doc.birds = ['Robin', 'Wagtail'])
       let s2 = Automerge.change(s1, doc => { doc.birds[1] = 'Pied Wagtail'; doc.birds.shift() })
       const obj = Automerge.getObjectId(s1.birds)
-      assert.deepEqual(Automerge.diff(s1, s2), [
+      assert.deepStrictEqual(Automerge.diff(s1, s2), [
         {obj, path: ['birds'], type: 'list', action: 'set',    index: 1, value: 'Pied Wagtail'},
         {obj, path: ['birds'], type: 'list', action: 'remove', index: 0}
       ])
@@ -1494,7 +1494,7 @@ describe('Automerge', () => {
       let s1 = Automerge.init()
       let s2 = Automerge.change(s1, doc => doc.birds = [{name: 'Chaffinch'}])
       let rootId = ROOT_ID
-      assert.deepEqual(Automerge.diff(s1, s2), [
+      assert.deepStrictEqual(Automerge.diff(s1, s2), [
         {action: 'create', type: 'list', obj: Automerge.getObjectId(s2.birds)},
         {action: 'create', type: 'map',  obj: Automerge.getObjectId(s2.birds[0])},
         {action: 'set',    type: 'map',  obj: Automerge.getObjectId(s2.birds[0]), path: null, key: 'name',  value: 'Chaffinch'},
@@ -1506,7 +1506,7 @@ describe('Automerge', () => {
     it('should include the path to the modified object', () => {
       let s1 = Automerge.change(Automerge.init(), doc => doc.birds = [{name: 'Chaffinch', habitat: ['woodland']}])
       let s2 = Automerge.change(s1, doc => doc.birds[0].habitat.push('gardens'))
-      assert.deepEqual(Automerge.diff(s1, s2), [{
+      assert.deepStrictEqual(Automerge.diff(s1, s2), [{
         action: 'insert',
         type:   'list',
         obj:    Automerge.getObjectId(s2.birds[0].habitat),
@@ -1521,24 +1521,24 @@ describe('Automerge', () => {
   describe('changes API', () => {
     it('should return an empty list on an empty document', () => {
       let changes = Automerge.getAllChanges(Automerge.init())
-      assert.deepEqual(changes, [])
+      assert.deepStrictEqual(changes, [])
     })
 
     it('should return an empty list when nothing changed', () => {
       let s1 = Automerge.change(Automerge.init(), doc => doc.birds = ['Chaffinch'])
-      assert.deepEqual(Automerge.getChanges(s1, s1), [])
+      assert.deepStrictEqual(Automerge.getChanges(s1, s1), [])
     })
 
     it('should do nothing when applying an empty list of changes', () => {
       let s1 = Automerge.change(Automerge.init(), doc => doc.birds = ['Chaffinch'])
-      assert.deepEqual(Automerge.applyChanges(s1, []), s1)
+      assert.deepStrictEqual(Automerge.applyChanges(s1, []), s1)
     })
 
     it('should return all changes when compared to an empty document', () => {
       let s1 = Automerge.change(Automerge.init(), 'Add Chaffinch', doc => doc.birds = ['Chaffinch'])
       let s2 = Automerge.change(s1, 'Add Bullfinch', doc => doc.birds.push('Bullfinch'))
       let changes = Automerge.getChanges(Automerge.init(), s2)
-      assert.deepEqual(changes.map(c => c.message), ['Add Chaffinch', 'Add Bullfinch'])
+      assert.deepStrictEqual(changes.map(c => c.message), ['Add Chaffinch', 'Add Bullfinch'])
     })
 
     it('should allow a document copy to be reconstructed from scratch', () => {
@@ -1546,7 +1546,7 @@ describe('Automerge', () => {
       let s2 = Automerge.change(s1, 'Add Bullfinch', doc => doc.birds.push('Bullfinch'))
       let changes = Automerge.getAllChanges(s2)
       let s3 = Automerge.applyChanges(Automerge.init(), changes)
-      assert.deepEqual(s3.birds, ['Chaffinch', 'Bullfinch'])
+      assert.deepStrictEqual(s3.birds, ['Chaffinch', 'Bullfinch'])
     })
 
     it('should return changes since the last given version', () => {
@@ -1554,8 +1554,8 @@ describe('Automerge', () => {
       let s2 = Automerge.change(s1, 'Add Bullfinch', doc => doc.birds.push('Bullfinch'))
       let changes1 = Automerge.getAllChanges(s1)
       let changes2 = Automerge.getChanges(s1, s2)
-      assert.deepEqual(changes1.map(c => c.message), ['Add Chaffinch'])
-      assert.deepEqual(changes2.map(c => c.message), ['Add Bullfinch'])
+      assert.deepStrictEqual(changes1.map(c => c.message), ['Add Chaffinch'])
+      assert.deepStrictEqual(changes2.map(c => c.message), ['Add Bullfinch'])
     })
 
     it('should incrementally apply changes since the last given version', () => {
@@ -1565,8 +1565,8 @@ describe('Automerge', () => {
       let changes2 = Automerge.getChanges(s1, s2)
       let s3 = Automerge.applyChanges(Automerge.init(), changes1)
       let s4 = Automerge.applyChanges(s3, changes2)
-      assert.deepEqual(s3.birds, ['Chaffinch'])
-      assert.deepEqual(s4.birds, ['Chaffinch', 'Bullfinch'])
+      assert.deepStrictEqual(s3.birds, ['Chaffinch'])
+      assert.deepStrictEqual(s4.birds, ['Chaffinch', 'Bullfinch'])
     })
 
     it('should report missing dependencies', () => {
@@ -1575,11 +1575,11 @@ describe('Automerge', () => {
       s2 = Automerge.change(s2, doc => doc.birds.push('Bullfinch'))
       let changes = Automerge.getAllChanges(s2)
       let s3 = Automerge.applyChanges(Automerge.init(), [changes[1]])
-      assert.deepEqual(s3, {})
-      assert.deepEqual(Automerge.getMissingDeps(s3), {[Automerge.getActorId(s1)]: 1})
+      assert.deepStrictEqual(s3, {})
+      assert.deepStrictEqual(Automerge.getMissingDeps(s3), {[Automerge.getActorId(s1)]: 1})
       s3 = Automerge.applyChanges(s3, [changes[0]])
-      assert.deepEqual(s3.birds, ['Chaffinch', 'Bullfinch'])
-      assert.deepEqual(Automerge.getMissingDeps(s3), {})
+      assert.deepStrictEqual(s3.birds, ['Chaffinch', 'Bullfinch'])
+      assert.deepStrictEqual(Automerge.getMissingDeps(s3), {})
     })
 
     it('should report missing dependencies with out-of-order applyChanges', () => {
@@ -1592,7 +1592,7 @@ describe('Automerge', () => {
       let s4 = Automerge.init()
       let s5 = Automerge.applyChanges(s4, changes2to3)
       let s6 = Automerge.applyChanges(s5, changes1to2)
-      assert.deepEqual(Automerge.getMissingDeps(s6), {[Automerge.getActorId(s0)]: 2})
+      assert.deepStrictEqual(Automerge.getMissingDeps(s6), {[Automerge.getActorId(s0)]: 2})
     })
   })
 })

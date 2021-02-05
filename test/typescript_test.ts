@@ -20,7 +20,7 @@ describe('TypeScript support', () => {
       s1 = Automerge.change(s1, doc => (doc.key = 'value'))
       assert.strictEqual(s1.key, 'value')
       assert.strictEqual(s1.nonexistent, undefined)
-      assert.deepEqual(s1, { key: 'value' })
+      assert.deepStrictEqual(s1, { key: 'value' })
     })
 
     it('should allow a document type to be specified as a parameter to `init`', () => {
@@ -38,7 +38,7 @@ describe('TypeScript support', () => {
       // throughout its life, rather than having to recast it once its required fields have
       // been populated.
       s1 = Automerge.change(s1, doc => (doc.birds = ['goldfinch']))
-      assert.deepEqual(s1.birds, ['goldfinch'])
+      assert.deepStrictEqual(s1.birds, ['goldfinch'])
     })
 
     it('should allow a document type to be specified on the result of `init`', () => {
@@ -46,7 +46,7 @@ describe('TypeScript support', () => {
       // `Doc`, which is frozen
       let s1: Doc<BirdList> = Automerge.init()
       let s2 = Automerge.change(s1, doc => (doc.birds = ['goldfinch']))
-      assert.deepEqual(s2.birds, ['goldfinch'])
+      assert.deepStrictEqual(s2.birds, ['goldfinch'])
     })
 
     it('should allow a document to be initialized with `from`', () => {
@@ -90,7 +90,7 @@ describe('TypeScript support', () => {
       const s0 = Frontend.init<BirdList>()
       const [s1, req1] = Frontend.change(s0, doc => (doc.birds = ['goldfinch']))
       assert.strictEqual(s1.birds[0], 'goldfinch')
-      assert.deepEqual(s1, { birds: ['goldfinch'] })
+      assert.deepStrictEqual(s1, { birds: ['goldfinch'] })
     })
 
     it('should allow a frontend actorId to be configured', () => {
@@ -103,7 +103,7 @@ describe('TypeScript support', () => {
       assert.strictEqual(Frontend.getActorId(s0), undefined)
       const s1 = Frontend.setActorId(s0, 'asdf123')
       const [s2, req] = Frontend.change(s1, doc => (doc.number = 15))
-      assert.deepEqual(s2, { number: 15 })
+      assert.deepStrictEqual(s2, { number: 15 })
     })
 
     it('should allow a frontend to be initialized with `from`', () => {
@@ -116,7 +116,7 @@ describe('TypeScript support', () => {
     it('should allow options to be passed to Frontend.from()', () => {
       const [s1, req1] = Frontend.from<BirdList>({ birds: []}, { actorId: '123' })
       assert.strictEqual(Frontend.getActorId(s1), '123')
-      assert.deepEqual(s1, { birds: [] })
+      assert.deepStrictEqual(s1, { birds: [] })
       const [s2, req2] = Frontend.from<BirdList>({ birds: []}, '123')
       assert.strictEqual(Frontend.getActorId(s2), '123')
     })
@@ -128,7 +128,7 @@ describe('TypeScript support', () => {
       s1 = Automerge.change(s1, doc => (doc.key = 'value'))
       let s2: any = Automerge.load(Automerge.save(s1))
       assert.strictEqual(s2.key, 'value')
-      assert.deepEqual(s2, { key: 'value' })
+      assert.deepStrictEqual(s2, { key: 'value' })
     })
 
     it('should allow a document of declared type to be loaded', () => {
@@ -136,7 +136,7 @@ describe('TypeScript support', () => {
       s1 = Automerge.change(s1, doc => (doc.birds = ['goldfinch']))
       let s2 = Automerge.load<BirdList>(Automerge.save(s1))
       assert.strictEqual(s2.birds[0], 'goldfinch')
-      assert.deepEqual(s2, { birds: ['goldfinch'] })
+      assert.deepStrictEqual(s2, { birds: ['goldfinch'] })
       assert.strictEqual(UUID_PATTERN.test(Automerge.getActorId(s2)), true)
     })
 
@@ -171,7 +171,7 @@ describe('TypeScript support', () => {
         doc.birds.deleteAt(0)
         doc.birds.deleteAt(0, 2)
       })
-      assert.deepEqual(s1, { birds: ['chaffinch'] })
+      assert.deepStrictEqual(s1, { birds: ['chaffinch'] })
     })
 
     it('should allow empty changes', () => {
@@ -187,7 +187,7 @@ describe('TypeScript support', () => {
       s2 = Automerge.change(s2, doc => (doc.number = 42))
       let s3 = Automerge.merge(s1, s2)
       assert.strictEqual(s3.number, 42)
-      assert.deepEqual(Automerge.getConflicts(s3, 'number'), { actor1: 3 })
+      assert.deepStrictEqual(Automerge.getConflicts(s3, 'number'), { actor1: 3 })
     })
 
     it('should allow changes in the frontend', () => {
@@ -195,7 +195,7 @@ describe('TypeScript support', () => {
       const [s1, req1] = Frontend.change(s0, doc => (doc.birds = ['goldfinch']))
       const [s2, req2] = Frontend.change(s1, doc => doc.birds.push('chaffinch'))
       assert.strictEqual(s2.birds[1], 'chaffinch')
-      assert.deepEqual(s2, { birds: ['goldfinch', 'chaffinch'] })
+      assert.deepStrictEqual(s2, { birds: ['goldfinch', 'chaffinch'] })
       assert.strictEqual(req2.message, undefined)
       assert.strictEqual(req2.actor, Frontend.getActorId(s0))
       assert.strictEqual(req2.seq, 2)
@@ -226,14 +226,14 @@ describe('TypeScript support', () => {
       assert.strictEqual(s2.number, 1)
       assert.strictEqual(patch1.actor, Automerge.getActorId(s0))
       assert.strictEqual(patch1.seq, 1)
-      assert.deepEqual(patch1.clock, { [Automerge.getActorId(s0)]: 1 })
+      assert.deepStrictEqual(patch1.clock, { [Automerge.getActorId(s0)]: 1 })
       assert.strictEqual(patch1.canUndo, true)
       assert.strictEqual(patch1.canRedo, false)
       assert.strictEqual(patch1.diffs.length, 1)
       assert.strictEqual(patch1.diffs[0].action, 'set')
       assert.strictEqual(patch1.diffs[0].type, 'map')
       assert.strictEqual(patch1.diffs[0].obj, ROOT_ID)
-      assert.deepEqual(patch1.diffs[0].path, [])
+      assert.deepStrictEqual(patch1.diffs[0].path, [])
       assert.strictEqual(patch1.diffs[0].key, 'number')
       assert.strictEqual(patch1.diffs[0].value, 1)
     })
@@ -269,7 +269,7 @@ describe('TypeScript support', () => {
       let s2 = Automerge.change(s1, doc => doc.birds.push('goldfinch'))
       const changes = Automerge.getAllChanges(s2)
       let s3 = Automerge.applyChanges(Automerge.init<BirdList>(), changes)
-      assert.deepEqual(s3.birds, ['goldfinch'])
+      assert.deepStrictEqual(s3.birds, ['goldfinch'])
     })
 
     it('should allow concurrent changes to be merged', () => {
@@ -279,7 +279,7 @@ describe('TypeScript support', () => {
       let s3 = Automerge.merge(Automerge.init<BirdList>(), s1)
       s3 = Automerge.change(s3, doc => doc.birds.push('chaffinch'))
       let s4 = Automerge.merge(s2, s3)
-      assert.deepEqual(s4.birds, ['greenfinch', 'goldfinch', 'chaffinch'])
+      assert.deepStrictEqual(s4.birds, ['greenfinch', 'goldfinch', 'chaffinch'])
     })
   })
 
@@ -315,7 +315,7 @@ describe('TypeScript support', () => {
       s1 = Automerge.undo(s1, 'go back to 3')
       assert.strictEqual(Automerge.getHistory(s1).length, 3)
       assert.strictEqual(Automerge.getHistory(s1)[2].change.message, 'go back to 3')
-      assert.deepEqual(s1, { number: 3 })
+      assert.deepStrictEqual(s1, { number: 3 })
     })
 
     it('should generate undo requests in the frontend', () => {
@@ -332,7 +332,7 @@ describe('TypeScript support', () => {
       assert.strictEqual(req2.seq, 2)
       const [b2, patch2] = Backend.applyLocalChange(b1, req2)
       const doc2a = Frontend.applyPatch(doc2, patch2)
-      assert.deepEqual(doc2a, {})
+      assert.deepStrictEqual(doc2a, {})
     })
   })
 
@@ -345,7 +345,7 @@ describe('TypeScript support', () => {
       assert.strictEqual(diff[0].action, 'set')
       assert.strictEqual(diff[0].type, 'map')
       assert.strictEqual(diff[0].obj, ROOT_ID)
-      assert.deepEqual(diff[0].path, [])
+      assert.deepStrictEqual(diff[0].path, [])
       assert.strictEqual(diff[0].key, 'number')
       assert.strictEqual(diff[0].value, 2)
     })
@@ -468,10 +468,10 @@ describe('TypeScript support', () => {
       ddiaWithId = Object.assign({id}, DDIA)
     })
 
-    it('supports `byId`', () => assert.deepEqual(s1.books.byId(id), ddiaWithId))
+    it('supports `byId`', () => assert.deepStrictEqual(s1.books.byId(id), ddiaWithId))
     it('supports `count`', () => assert.strictEqual(s1.books.count, 1))
-    it('supports `ids`', () => assert.deepEqual(s1.books.ids, [id]))
-    it('supports iteration', () => assert.deepEqual([...s1.books], [ddiaWithId]))
+    it('supports `ids`', () => assert.deepStrictEqual(s1.books.ids, [id]))
+    it('supports iteration', () => assert.deepStrictEqual([...s1.books], [ddiaWithId]))
 
     it('allows adding row properties', () => {
       // Note that if we add columns and want to actually use them, we need to recast the table to a
@@ -497,7 +497,7 @@ describe('TypeScript support', () => {
 
       // Now we're off to the races
       const p3 = s3.books.byId(id).publisher
-      assert.deepEqual(p3, "O'Reilly")
+      assert.deepStrictEqual(p3, "O'Reilly")
     })
 
     it('supports `remove`', () => {
@@ -509,20 +509,20 @@ describe('TypeScript support', () => {
       it('accepts value passed as object', () => {
         let bookId: string
         const s2 = Automerge.change(s1, doc => (bookId = doc.books.add(RSDP)))
-        assert.deepEqual(s2.books.byId(bookId), Object.assign({id: bookId}, RSDP))
+        assert.deepStrictEqual(s2.books.byId(bookId), Object.assign({id: bookId}, RSDP))
         assert.strictEqual(s2.books.byId(bookId).id, bookId)
       })
     })
 
     describe('standard array operations on rows', () => {
       it('returns a list of rows', () =>
-        assert.deepEqual(s1.books.rows, [ddiaWithId]))
+        assert.deepStrictEqual(s1.books.rows, [ddiaWithId]))
       it('supports `filter`', () =>
-        assert.deepEqual(s1.books.filter(book => book.authors.length === 1), [ddiaWithId]))
+        assert.deepStrictEqual(s1.books.filter(book => book.authors.length === 1), [ddiaWithId]))
       it('supports `find`', () =>
-        assert.deepEqual(s1.books.find(book => book.isbn === '1449373321'), ddiaWithId))
+        assert.deepStrictEqual(s1.books.find(book => book.isbn === '1449373321'), ddiaWithId))
       it('supports `map`', () =>
-        assert.deepEqual(s1.books.map<string>(book => book.title), [DDIA.title]))
+        assert.deepStrictEqual(s1.books.map<string>(book => book.title), [DDIA.title]))
     })
   })
 
@@ -571,8 +571,8 @@ describe('TypeScript support', () => {
         doc.birds.wrens = new Counter(1)
         doc.birds.wrens.increment(2)
       })
-      assert.deepEqual(doc1, { birds: {} })
-      assert.deepEqual(doc2, { birds: { wrens: 3 } })
+      assert.deepStrictEqual(doc1, { birds: {} })
+      assert.deepStrictEqual(doc2, { birds: { wrens: 3 } })
     })
 
     it('should coalesce multiple increments', () => {
@@ -657,12 +657,12 @@ describe('TypeScript support', () => {
 
     it('should call the handler via set', () => {
       docSet.setDoc(ID, afterDoc)
-      assert.deepEqual(docSet.getDoc(ID), afterDoc)
+      assert.deepStrictEqual(docSet.getDoc(ID), afterDoc)
     })
 
     it('should call the handler via applyChanges', () => {
       docSet.applyChanges(ID, changes)
-      assert.deepEqual(docSet.getDoc(ID), afterDoc)
+      assert.deepStrictEqual(docSet.getDoc(ID), afterDoc)
     })
 
     it('should allow removing the handler', () => {
@@ -676,7 +676,7 @@ describe('TypeScript support', () => {
     })
   
     it('should list the ids of its documents', () => {
-      assert.deepEqual(Array.from(docSet.docIds), [ID])
+      assert.deepStrictEqual(Array.from(docSet.docIds), [ID])
     })
   })
 
@@ -702,12 +702,12 @@ describe('TypeScript support', () => {
 
     it('should call the handler via set', () => {
       watchDoc.set(afterDoc)
-      assert.deepEqual(watchDoc.get(), afterDoc)
+      assert.deepStrictEqual(watchDoc.get(), afterDoc)
     })
 
     it('should call the handler via applyChanges', () => {
       watchDoc.applyChanges(changes)
-      assert.deepEqual(watchDoc.get(), afterDoc)
+      assert.deepStrictEqual(watchDoc.get(), afterDoc)
     })
 
     it('should allow removing the handler', () => {

@@ -154,17 +154,17 @@ describe('SkipList', () => {
   describe('iterators', () => {
     it('should iterate over values by default', () => {
       let s = new SkipList().insertAfter(null, 'key1', 'value1').insertAfter('key1', 'key2', 'value2')
-      assert.deepEqual([...s], ['value1', 'value2'])
+      assert.deepStrictEqual([...s], ['value1', 'value2'])
     })
 
     it('should support iterating over keys', () => {
       let s = new SkipList().insertAfter(null, 'key1', 'value1').insertAfter('key1', 'key2', 'value2')
-      assert.deepEqual([...s.iterator('keys')], ['key1', 'key2'])
+      assert.deepStrictEqual([...s.iterator('keys')], ['key1', 'key2'])
     })
 
     it('should support iterating over entries', () => {
       let s = new SkipList().insertAfter(null, 'key1', 'value1').insertAfter('key1', 'key2', 'value2')
-      assert.deepEqual([...s.iterator('entries')], [['key1', 'value1'], ['key2', 'value2']])
+      assert.deepStrictEqual([...s.iterator('entries')], [['key1', 'value1'], ['key2', 'value2']])
     })
   })
 
@@ -226,7 +226,7 @@ describe('SkipList', () => {
   describe('internal structure', () => {
     it('should have a head node when initialized', () => {
       let s = new SkipList()
-      assert.deepEqual(s._nodes.get(null),
+      assert.deepStrictEqual(s._nodes.get(null),
                        {key: null, value: null, level: 1,
                         prevKey: [], prevCount: [], nextKey: [null], nextCount: [null]})
     })
@@ -234,10 +234,10 @@ describe('SkipList', () => {
     it('should link to a new level-1 node', () => {
       let s = new SkipList(iter([1]))
       s = s.insertAfter(null, 'a', 'aaa')
-      assert.deepEqual(s._nodes.get(null),
+      assert.deepStrictEqual(s._nodes.get(null),
                        {key: null, value: null, level: 1,
                         prevKey: [], prevCount: [], nextKey: ['a'], nextCount: [1]})
-      assert.deepEqual(s._nodes.get('a'),
+      assert.deepStrictEqual(s._nodes.get('a'),
                        {key: 'a', value: 'aaa', level: 1,
                         prevKey: [null], prevCount: [1], nextKey: [null], nextCount: [1]})
     })
@@ -247,20 +247,20 @@ describe('SkipList', () => {
       s = s.insertAfter(null, 'a', 'aaa').insertAfter('a', 'b', 'bbb').insertAfter('b', 'd', 'ddd')
       s = s.insertAfter('b', 'c', 'ccc') // this is the level-3 node
 
-      assert.deepEqual(s._nodes.get(null),
+      assert.deepStrictEqual(s._nodes.get(null),
                        {key: null, value: null, level: 3,
                         prevKey: [], prevCount: [], nextKey: ['a', 'c', 'c'], nextCount: [1, 3, 3]})
-      assert.deepEqual(s._nodes.get('a'),
+      assert.deepStrictEqual(s._nodes.get('a'),
                        {key: 'a', value: 'aaa', level: 1,
                         prevKey: [null], prevCount: [1], nextKey: ['b'], nextCount: [1]})
-      assert.deepEqual(s._nodes.get('b'),
+      assert.deepStrictEqual(s._nodes.get('b'),
                        {key: 'b', value: 'bbb', level: 1,
                         prevKey: ['a'], prevCount: [1], nextKey: ['c'], nextCount: [1]})
-      assert.deepEqual(s._nodes.get('c'),
+      assert.deepStrictEqual(s._nodes.get('c'),
                        {key: 'c', value: 'ccc', level: 3,
                         prevKey: ['b', null, null], prevCount: [1, 3, 3],
                         nextKey: ['d', null, null], nextCount: [1, 2, 2]})
-      assert.deepEqual(s._nodes.get('d'),
+      assert.deepStrictEqual(s._nodes.get('d'),
                        {key: 'd', value: 'ddd', level: 1,
                         prevKey: ['c'], nextKey: [null], prevCount: [1], nextCount: [1]})
     })
@@ -270,19 +270,19 @@ describe('SkipList', () => {
       s = s.insertAfter(null, '1', '1').insertAfter('1', '2', '2').insertAfter('2', '3', '3').insertAfter('3', '4', '4')
       s = s.insertAfter('4', '5', '5').insertAfter('5', '6', '6').insertAfter('6', '7', '7').insertAfter('7', '8', '8')
 
-      assert.deepEqual(s._nodes.get(null),
+      assert.deepStrictEqual(s._nodes.get(null),
                        {key: null, value: null, level: 4,
                         prevKey: [], prevCount: [], nextKey: ['1', '2', '4', '8'], nextCount: [1, 2, 4, 8]})
-      assert.deepEqual(s._nodes.get('2'),
+      assert.deepStrictEqual(s._nodes.get('2'),
                        {key: '2', value: '2', level: 2,
                         prevKey: ['1', null], prevCount: [1, 2], nextKey: ['3', '4'], nextCount: [1, 2]})
-      assert.deepEqual(s._nodes.get('4'),
+      assert.deepStrictEqual(s._nodes.get('4'),
                        {key: '4', value: '4', level: 3,
                         prevKey: ['3', '2', null], prevCount: [1, 2, 4], nextKey: ['5', '6', '8'], nextCount: [1, 2, 4]})
-      assert.deepEqual(s._nodes.get('6'),
+      assert.deepStrictEqual(s._nodes.get('6'),
                        {key: '6', value: '6', level: 2,
                         prevKey: ['5', '4'], prevCount: [1, 2], nextKey: ['7', '8'], nextCount: [1, 2]})
-      assert.deepEqual(s._nodes.get('8'),
+      assert.deepStrictEqual(s._nodes.get('8'),
                        {key: '8', value: '8', level: 4,
                         prevKey: [ '7',  '6',  '4', null], prevCount: [1, 2, 4, 8],
                         nextKey: [null, null, null, null], nextCount: [1, 1, 1, 1]})
@@ -294,21 +294,21 @@ describe('SkipList', () => {
       s = s.insertAfter('4', '5', '5').insertAfter('5', '6', '6').insertAfter('6', '7', '7')
       s = s.insertAfter('4', 'x', 'x') // insert x at level 4
 
-      assert.deepEqual(s._nodes.get('1'),
+      assert.deepStrictEqual(s._nodes.get('1'),
                        {key: '1', value: '1', level: 5,
                         prevKey: [null, null, null, null, null], prevCount: [1, 1, 1, 1, 1],
                         nextKey: [ '2',  '2',  'x',  'x',  '7'], nextCount: [1, 1, 4, 4, 7]})
-      assert.deepEqual(s._nodes.get('2'),
+      assert.deepStrictEqual(s._nodes.get('2'),
                        {key: '2', value: '2', level: 2,
                         prevKey: ['1', '1'], prevCount: [1, 1], nextKey: ['3', 'x'], nextCount: [1, 3]})
-      assert.deepEqual(s._nodes.get('x'),
+      assert.deepStrictEqual(s._nodes.get('x'),
                        {key: 'x', value: 'x', level: 4,
                         prevKey: ['4', '2', '1', '1'], prevCount: [1, 3, 4, 4],
                         nextKey: ['5', '6', '7', '7'], nextCount: [1, 2, 3, 3]})
-      assert.deepEqual(s._nodes.get('6'),
+      assert.deepStrictEqual(s._nodes.get('6'),
                        {key: '6', value: '6', level: 2,
                         prevKey: ['5', 'x'], prevCount: [1, 2], nextKey: ['7', '7'], nextCount: [1, 1]})
-      assert.deepEqual(s._nodes.get('7'),
+      assert.deepStrictEqual(s._nodes.get('7'),
                        {key: '7', value: '7', level: 5,
                         prevKey: [ '6',  '6',  'x',  'x',  '1'], prevCount: [1, 1, 3, 3, 7],
                         nextKey: [null, null, null, null, null], nextCount: [1, 1, 1, 1, 1]})
@@ -318,25 +318,25 @@ describe('SkipList', () => {
       let s = new SkipList(iter([1, 2, 1, 3]))
       s = s.insertAfter(null, 'a', 'a').insertAfter('a', 'b', 'b').insertAfter('b', 'c', 'c').insertAfter('c', 'd', 'd')
 
-      assert.deepEqual(s._nodes.get(null),
+      assert.deepStrictEqual(s._nodes.get(null),
                        {key: null, value: null, level: 3,
                         prevKey: [], prevCount: [], nextKey: ['a', 'b', 'd'], nextCount: [1, 2, 4]})
-      assert.deepEqual(s._nodes.get('d'),
+      assert.deepStrictEqual(s._nodes.get('d'),
                        {key: 'd', value: 'd', level: 3,
                         prevKey: [ 'c',  'b', null], prevCount: [1, 2, 4],
                         nextKey: [null, null, null], nextCount: [1, 1, 1]})
 
       s = s.removeKey('b')
-      assert.deepEqual(s._nodes.get(null),
+      assert.deepStrictEqual(s._nodes.get(null),
                        {key: null, value: null, level: 3,
                         prevKey: [], prevCount: [], nextKey: ['a', 'd', 'd'], nextCount: [1, 3, 3]})
-      assert.deepEqual(s._nodes.get('a'),
+      assert.deepStrictEqual(s._nodes.get('a'),
                        {key: 'a', value: 'a', level: 1,
                         prevKey: [null], prevCount: [1], nextKey: ['c'], nextCount: [1]})
-      assert.deepEqual(s._nodes.get('c'),
+      assert.deepStrictEqual(s._nodes.get('c'),
                        {key: 'c', value: 'c', level: 1,
                         prevKey: ['a'], prevCount: [1], nextKey: ['d'], nextCount: [1]})
-      assert.deepEqual(s._nodes.get('d'),
+      assert.deepStrictEqual(s._nodes.get('d'),
                        {key: 'd', value: 'd', level: 3,
                         prevKey: [ 'c', null, null], prevCount: [1, 3, 3],
                         nextKey: [null, null, null], nextCount: [1, 1, 1]})
@@ -345,7 +345,7 @@ describe('SkipList', () => {
 
     it('should allow the only element to be removed', () => {
       let s = new SkipList(iter([1])).insertAfter(null, '0', '0').removeKey('0')
-      assert.deepEqual(s._nodes.get(null),
+      assert.deepStrictEqual(s._nodes.get(null),
                        {key: null, value: null, level: 1,
                         prevKey: [], prevCount: [], nextKey: [null], nextCount: [1]})
     })

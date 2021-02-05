@@ -376,7 +376,7 @@ describe('Automerge.Text', () => {
     })
 
     it('should allow fetching non-textual characters', () => {
-      assert.deepEqual(s1.text.get(1), { attribute: 'bold' })
+      assert.deepStrictEqual(s1.text.get(1), { attribute: 'bold' })
     })
 
     it('should include control characters in string length', () => {
@@ -393,20 +393,20 @@ describe('Automerge.Text', () => {
         let s1 = Automerge.change(Automerge.init(), doc => {
           doc.text = new Automerge.Text('hello world')
         })
-        assert.deepEqual(s1.text.toSpans(), ['hello world'])
+        assert.deepStrictEqual(s1.text.toSpans(), ['hello world'])
       })
       it('should return an empty string as an empty array', () =>{
         let s1 = Automerge.change(Automerge.init(), doc => {
           doc.text = new Automerge.Text()
         })
-        assert.deepEqual(s1.text.toSpans(), [])
+        assert.deepStrictEqual(s1.text.toSpans(), [])
       })
       it('should split a span at a control character', () => {
         let s1 = Automerge.change(Automerge.init(), doc => {
           doc.text = new Automerge.Text('hello world')
           doc.text.insertAt(5, { attributes: { bold: true } })
         })
-        assert.deepEqual(s1.text.toSpans(),
+        assert.deepStrictEqual(s1.text.toSpans(),
           ['hello', { attributes: { bold: true } }, ' world'])
       })
       it('should allow consecutive control characters', () => {
@@ -415,7 +415,7 @@ describe('Automerge.Text', () => {
           doc.text.insertAt(5, { attributes: { bold: true } })
           doc.text.insertAt(6, { attributes: { italic: true } })
         })
-        assert.deepEqual(s1.text.toSpans(),
+        assert.deepStrictEqual(s1.text.toSpans(),
           ['hello',
            { attributes: { bold: true } },
            { attributes: { italic: true } },
@@ -428,7 +428,7 @@ describe('Automerge.Text', () => {
           doc.text.insertAt(5, { attributes: { bold: true } })
           doc.text.insertAt(12, { attributes: { italic: true } })
         })
-        assert.deepEqual(s1.text.toSpans(),
+        assert.deepStrictEqual(s1.text.toSpans(),
           ['hello',
            { attributes: { bold: true } },
            ' world',
@@ -453,7 +453,7 @@ describe('Automerge.Text', () => {
           { insert: 'Grey', attributes: { color: '#cccccc' } }
         ]
 
-        assert.deepEqual(deltaDoc, expectedDoc)
+        assert.deepStrictEqual(deltaDoc, expectedDoc)
       })
 
       it('should support embeds', () => {
@@ -479,7 +479,7 @@ describe('Automerge.Text', () => {
           }
         }]
 
-        assert.deepEqual(deltaDoc, expectedDoc)
+        assert.deepStrictEqual(deltaDoc, expectedDoc)
       })
 
       it('should handle concurrent overlapping spans', () => {
@@ -508,7 +508,7 @@ describe('Automerge.Text', () => {
           { insert: 'Gandalf the Grey', attributes: { bold: true } },
         ]
 
-        assert.deepEqual(deltaDoc, expectedDoc)
+        assert.deepStrictEqual(deltaDoc, expectedDoc)
       })
 
       it('should handle debolding spans', () => {
@@ -540,7 +540,7 @@ describe('Automerge.Text', () => {
           { insert: ' Grey', attributes: { bold: true } },
         ]
 
-        assert.deepEqual(deltaDoc, expectedDoc)
+        assert.deepStrictEqual(deltaDoc, expectedDoc)
       })
 
       // xxx: how would this work for colors?
@@ -576,7 +576,7 @@ describe('Automerge.Text', () => {
           { insert: 'dalf the Grey' },
         ]
 
-        assert.deepEqual(deltaDoc, expectedDoc)
+        assert.deepStrictEqual(deltaDoc, expectedDoc)
       })
 
       it('should apply an insert', () => {
@@ -614,7 +614,7 @@ describe('Automerge.Text', () => {
         })
 
         assert.strictEqual(s2.text.toString(), 'Hello reader!')
-        assert.deepEqual(s2.text.toSpans(), [
+        assert.deepStrictEqual(s2.text.toSpans(), [
           "Hello ",
           { attributes: { bold: true } },
           "reader",
@@ -642,7 +642,7 @@ describe('Automerge.Text', () => {
         })
 
         assert.strictEqual(s2.text.toString(), 'Hello reader!')
-        assert.deepEqual(s2.text.toSpans(), [
+        assert.deepStrictEqual(s2.text.toSpans(), [
           "Hell",
           { attributes: { color: '#ccc'} },
           "o ",
@@ -673,7 +673,7 @@ describe('Automerge.Text', () => {
           applyDeltaDocToAutomergeText(deltaDoc, doc)
         })
 
-        assert.deepEqual(s2.text.toSpans(), [
+        assert.deepStrictEqual(s2.text.toSpans(), [
           { attributes: { link: 'https://quilljs.com' } },
           { image: 'https://quilljs.com/assets/images/icon.png'},
           { attributes: { link: null } },
