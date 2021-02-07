@@ -248,13 +248,13 @@ function merge(local, remote) {
   return applyChanges(local, changes)
 }
 
-function createChange(request) {
+function createChange(request, ops) {
   const { actor, seq, deps, message } = request
-  const change = Map({ actor, seq, deps: fromJS(deps), message, ops: undoOps })
+  const change = Map({ actor, seq, deps: fromJS(deps), message, ops })
   return change
 }
 
-function createUndoOp(op) {
+function createUndoOps(op) {
   let undoOps
   if (op.get('action') === 'inc') {
     // Undo increment by incrementing the negative value.
@@ -280,19 +280,22 @@ function createUndoOp(op) {
  * containing `[state, patch]`.
  */
 function undo(state, request) {
-  const undoPos = state.getIn(['opSet', 'undoPos'])
-  const undoOps = state.getIn(['opSet', 'undoStack', undoPos - 1])
-  if (undoPos < 1 || !undoOps) {
-    throw new RangeError('Cannot undo: there is nothing to be undone')
-  }
-  const { actor, seq, deps, message } = request
-  const change = Map({ actor, seq, deps: fromJS(deps), message, ops: undoOps })
+  // const undoPos = state.getIn(['opSet', 'undoPos'])
+  // const undoOps = state.getIn(['opSet', 'undoStack', undoPos - 1])
+  // if (undoPos < 1 || !undoOps) {
+  //   throw new RangeError('Cannot undo: there is nothing to be undone')
+  // }
+  // const { actor, seq, deps, message } = request
+  // const change = Map({ actor, seq, deps: fromJS(deps), message, ops: undoOps })
 
-  let opSet = state.get('opSet')
+  // let opSet = state.get('opSet')
 
-  opSet = opSet
-    .set('undoPos', undoPos - 1)
-    .update('redoStack', stack => stack.push(redoOps))
+  // opSet = opSet
+  //   .set('undoPos', undoPos - 1)
+  //   .update('redoStack', stack => stack.push(redoOps))
+
+  const lastChange = OpSet.get()
+  const undoOps = createUndoOps()
 
   const [newOpSet, diffs] = OpSet.addChange(opSet, change, false)
   state = state.set('opSet', newOpSet)
