@@ -254,6 +254,14 @@ function createChange(request, ops) {
   return change
 }
 
+function compareChanges(change, change2) {
+  change.get('ops')
+    .zip(change2.get('ops'))
+    .map((op1, op2) => op1.equals(op2))
+    .reduce((acc, b) => acc && b)
+}
+
+
 function createUndoOps(op) {
   let undoOps
   if (op.get('action') === 'inc') {

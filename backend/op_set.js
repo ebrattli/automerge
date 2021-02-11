@@ -325,6 +325,8 @@ function applyChange(opSet, change) {
     .set('deps', remainingDeps)
     .setIn(['clock', actor], seq)
     .update('history', history => history.push(change))
+    .update('undoLengths', s => s.set(change.hashCode(), 0))
+
   return [opSet, diffs]
 }
 
@@ -370,6 +372,7 @@ function init() {
     .set('undoStack', List())
     .set('redoStack', List())
     .set('queue', List())
+    .set('undoLengths', Map())
 }
 
 function addChange(opSet, change, isUndoable) {
