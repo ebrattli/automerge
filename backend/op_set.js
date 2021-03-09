@@ -198,20 +198,6 @@ function applyAssign(opSet, op, topLevel) {
   const objType = opSet.getIn(['byObject', objectId, '_init', 'action'])
   if (!opSet.get('byObject').has(objectId)) throw new Error('Modification of unknown object ' + objectId)
 
-  if (opSet.has('undoLocal') && topLevel) {
-    let undoOps
-    if (op.get('action') === 'inc') {
-      undoOps = List.of(Map({ action: 'inc', obj: objectId, key: op.get('key'), value: -op.get('value') }))
-    } else {
-      undoOps = opSet.getIn(['byObject', objectId, '_keys', op.get('key')], List())
-        .map(ref => ref.filter((v, k) => ['action', 'obj', 'key', 'value', 'datatype'].includes(k)))
-    }
-    if (undoOps.isEmpty()) {
-      undoOps = List.of(Map({ action: 'del', obj: objectId, key: op.get('key') }))
-    }
-    opSet = opSet.update('undoLocal', undoLocal => undoLocal.concat(undoOps))
-  }
-
   const ops = opSet.getIn(['byObject', objectId, '_keys', op.get('key')], List())
   let overwritten, remaining
 
@@ -325,7 +311,7 @@ function applyChange(opSet, change) {
     .set('deps', remainingDeps)
     .setIn(['clock', actor], seq)
     .update('history', history => history.push(change))
-    .update('changes', s => s.add(change))
+    .update('changes', s => s.set(hashChange(change), change))
 
   return [opSet, diffs]
 }
@@ -348,19 +334,6 @@ function applyQueuedOps(opSet) {
   }
 }
 
-function pushUndoHistory(opSet) {
-  const undoPos = opSet.get('undoPos')
-  return opSet
-    .update('undoStack', stack => {
-      return stack
-        .slice(0, undoPos)
-        .push(opSet.get('undoLocal'))
-    })
-    .set('undoPos', undoPos + 1)
-    .set('redoStack', List())
-    .remove('undoLocal')
-}
-
 function init() {
   return Map()
     .set('states', Map())
@@ -369,10 +342,8 @@ function init() {
     .set('clock', Map())
     .set('deps', Map())
     .set('undoPos', 0)
-    .set('undoStack', List())
-    .set('redoStack', List())
     .set('queue', List())
-    .set('changes', Set())
+    .set('changes', Map())
 }
 
 function addChange(opSet, change, isUndoable) {
@@ -383,11 +354,21 @@ function addChange(opSet, change, isUndoable) {
     opSet = opSet.set('undoLocal', List())
     let diffs
       ;[opSet, diffs] = applyQueuedOps(opSet)
-    opSet = pushUndoHistory(opSet)
     return [opSet, diffs]
   } else {
     return applyQueuedOps(opSet)
   }
+}
+
+// Hash a change using only its operations
+function hashChange(change) {
+  return change.get('ops').hashCode()
+}
+
+function filterDuplicateChanges(opSet, changes) {
+  return changes.filter(change =>
+    !opSet.get('changes').has(hashChange(change))
+    )
 }
 
 function getMissingChanges(opSet, haveDeps) {
@@ -572,7 +553,7 @@ function listIterator(opSet, listId, context) {
 }
 
 module.exports = {
-  init, addChange, getMissingChanges, getChangesForActor, getMissingDeps,
+  init, addChange, filterDuplicateChanges, getMissingChanges, getChangesForActor, getMissingDeps,
   getObjectFields, getObjectField, getObjectConflicts, getFieldOps,
   listElemByIndex, listLength, listIterator, ROOT_ID
 }

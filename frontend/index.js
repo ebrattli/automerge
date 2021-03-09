@@ -392,9 +392,9 @@ function undo(doc, options) {
   if (options !== undefined && !isObject(options)) {
     throw new TypeError('Unsupported type of options')
   }
-  if (!doc[STATE].canUndo) {
-    throw new Error('Cannot undo: there is nothing to be undone')
-  }
+  // if (!doc[STATE].canUndo) {
+  //   throw new Error('Cannot undo: there is nothing to be undone')
+  // }
   if (isUndoRedoInFlight(doc)) {
     throw new Error('Can only have one undo in flight at any one time')
   }

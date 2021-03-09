@@ -177,7 +177,7 @@ function applyChanges(state, changes) {
  */
 function applyLocalChange(state, change) {
   if (typeof change.actor !== 'string' || typeof change.seq !== 'number') {
-    throw new TypeError('Change request requries `actor` and `seq` properties')
+    throw new TypeError('Change request requires `actor` and `seq` properties')
   }
   // Throw error if we have already applied this change request
   if (change.seq <= state.getIn(['opSet', 'clock', change.actor], 0)) {
@@ -245,7 +245,9 @@ function getMissingDeps(state) {
  */
 function merge(local, remote) {
   const changes = OpSet.getMissingChanges(remote.get('opSet'), local.getIn(['opSet', 'clock']))
-  return applyChanges(local, changes)
+  const filteredChanges = OpSet.filterDuplicateChanges(local.get('opSet'), changes)
+
+  return applyChanges(local, filteredChanges)
 }
 
 function createChange(request, ops) {
@@ -262,22 +264,39 @@ function compareChanges(change, change2) {
 }
 
 
-function createUndoOps(op) {
+function createUndoOp(opSet, op) {
   let undoOps
+  const objectId = op.get('obj')
+
   if (op.get('action') === 'inc') {
     // Undo increment by incrementing the negative value.
     undoOps = List.of(Map({ action: 'inc', obj: objectId, key: op.get('key'), value: -op.get('value') }))
   } else {
     // If a key has been changed from one value to another, then set key to previous value..
-    undoOps = opSet.getIn(['byObject', objectId, '_keys', op.get('key')], List())
-      .map(ref => ref.filter((v, k) => ['action', 'obj', 'key', 'value', 'datatype'].includes(k)))
+    // undoOps = opSet.getIn(['byObject', objectId, '_keys', op.get('key')], List())
+    //   .map(ref => ref.filter((v, k) => ['action', 'obj', 'key', 'value', 'datatype'].includes(k)))
+
+    // Cannot handle destructive operations yet.
+    undoOps = List()
   }
   if (undoOps.isEmpty()) {
     // If key has not had another value before, then delete the key from the object.
-    undoOps = List.of(Map({ action: 'del', obj: objectId, key: op.get('key') }))
+    // Also add operation being undone to the undoOp.
+
+    const undoOp = Map({
+      action: 'del',
+      obj: objectId,
+      key: op.get('key'),
+      undoOp: op.filter((v, k) => ['action', 'obj', 'key', 'value', 'datatype'].includes(k))
+    })
+    undoOps = List.of(undoOp)
   }
 
   return undoOps
+}
+
+function createUndoOps(opSet, ops) {
+  return ops.flatMap((op) => createUndoOp(opSet, op))
 }
 
 /**
@@ -302,10 +321,18 @@ function undo(state, request) {
   //   .set('undoPos', undoPos - 1)
   //   .update('redoStack', stack => stack.push(redoOps))
 
-  const lastChange = OpSet.get()
-  const undoOps = createUndoOps()
+  const opSet = state.get('opSet')
+  const lastChange = opSet.get('history').get(0)
+  return undoChange(state, request, lastChange)
+}
 
-  const [newOpSet, diffs] = OpSet.addChange(opSet, change, false)
+function undoChange(state, request, change) {
+  const opSet = state.get('opSet')
+  const undoOps = createUndoOps(opSet, change.get('ops'))
+  const { actor, seq, deps, message } = request
+  const undoChange = Map({ actor, seq, deps: fromJS(deps), message, ops: undoOps })
+
+  const [newOpSet, diffs] = OpSet.addChange(opSet, undoChange, false)
   state = state.set('opSet', newOpSet)
   return [state, makePatch(state, diffs)]
 }
@@ -317,16 +344,15 @@ function undo(state, request) {
  * returning a two-element list `[state, patch]`.
  */
 function redo(state, request) {
-  const redoOps = state.getIn(['opSet', 'redoStack']).last()
-  if (!redoOps) {
-    throw new RangeError('Cannot redo: the last change was not an undo')
-  }
+  // const redoOps = state.getIn(['opSet', 'redoStack']).last()
+  // if (!redoOps) {
+  //   throw new RangeError('Cannot redo: the last change was not an undo')
+  // }
+  // const opSet = state.get('opSet')
+  //   .update('undoPos', undoPos => undoPos + 1)
+  //   .update('redoStack', stack => stack.pop())
   const { actor, seq, deps, message } = request
   const change = Map({ actor, seq, deps: fromJS(deps), message, ops: redoOps })
-
-  const opSet = state.get('opSet')
-    .update('undoPos', undoPos => undoPos + 1)
-    .update('redoStack', stack => stack.pop())
 
   const [newOpSet, diffs] = OpSet.addChange(opSet, change, false)
   state = state.set('opSet', newOpSet)
