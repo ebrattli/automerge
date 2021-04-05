@@ -51,8 +51,18 @@ function undo(doc, options) {
   return newDoc
 }
 
+function undoChange(doc, change, options) {
+  const [newDoc, newChange] = Frontend.undoChange(doc, change, options)
+  return newDoc
+}
+
 function redo(doc, options) {
   const [newDoc, change] = Frontend.redo(doc, options)
+  return newDoc
+}
+
+function redoChange(doc, change, options) {
+  const [newDoc, newChange] = Frontend.redoChange(doc, change, options)
   return newDoc
 }
 
@@ -134,7 +144,7 @@ function getHistory(doc) {
 }
 
 module.exports = {
-  init, from, change, emptyChange, undo, redo,
+  init, from, change, emptyChange, undo, redo, undoChange, redoChange,
   load, save, merge, diff, getChanges, getAllChanges, applyChanges, getMissingDeps,
   equals, getHistory, uuid,
   Frontend, Backend,

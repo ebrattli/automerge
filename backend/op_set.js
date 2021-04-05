@@ -15,6 +15,22 @@ function isConcurrent(opSet, op1, op2) {
   return clock1.get(actor2, 0) < seq2 && clock2.get(actor1, 0) < seq1
 }
 
+function handleConcurrentAssignments(opSet, changes) {
+  const newHistory = opSet
+    .get('history')
+    .map(localChange => addConcurrentLink(opSet, localChange, changes))
+  return opSet.set('history', newHistory)
+}
+
+function addConcurrentLink(opSet, localChange, changes) {
+  for (change in changes) {
+    if (isConcurrent(opSet, change, localChange)) {
+      return localChange.set('prevChange', change)
+    }
+  }
+  return change
+}
+
 // Returns true if all changes that causally precede the given change
 // have already been applied in `opSet`.
 function causallyReady(opSet, change) {
@@ -288,6 +304,7 @@ function applyOps(opSet, ops) {
 function applyChange(opSet, change) {
   const actor = change.get('actor'), seq = change.get('seq')
   const prior = opSet.getIn(['states', actor], List())
+  change = change.set('undoLength', 0)
   if (seq <= prior.size) {
     if (!prior.get(seq - 1).get('change').equals(change)) {
       throw new Error('Inconsistent reuse of sequence number ' + seq + ' by ' + actor)
@@ -298,14 +315,45 @@ function applyChange(opSet, change) {
   const allDeps = transitiveDeps(opSet, change.get('deps').set(actor, seq - 1))
   opSet = opSet.setIn(['states', actor], prior.push(Map({ change, allDeps })))
 
-  let diffs, ops = change.get('ops').map(op => op.merge({ actor, seq }))
-    ;[opSet, diffs] = applyOps(opSet, ops)
+  // Handle register being overwritten
+  const objectId = change.getIn(['ops', 0, 'obj'])
+  const key = change.getIn(['ops', 0, 'key'])
+  const prevOps = opSet.getIn(['byObject', objectId, '_keys', key], List())
+  if (prevOps.size > 0) {
+    change = change.set('prevChange', prevOps.getIn([0, 'changeId']))
+  }
+
+  let diffs, ops = change.get('ops').map(op => op.merge({ actor, seq, changeId: hashChange(change) }))
+  ;[opSet, diffs] = applyOps(opSet, ops)
+
+  // handle concurrent assignment
+  const concurrentOps = opSet.getIn(['byObject', objectId, '_keys', key], List())
+  if (concurrentOps.size > 1) {
+    const actor1 = concurrentOps.getIn([0, 'actor'])
+    const actor2 = concurrentOps.getIn([1, 'actor'])
+    let other = opSet
+      .get('history')
+      .reverse()
+      .find(change => key === change.getIn(['ops', 0, 'key']))
+
+    if (change.get('actor') === actor1) {
+      change = change.set('prevChange', hashChange(other))
+    } else {
+      // If the current change has a previous change, then transfer this to the new change.
+      if (opSet.hasIn(['changes', hashChange(other), 'prevChange'])) {
+        change = change.set('prevChange', opSet.getIn(['changes', hashChange(other), 'prevChange']))
+      }
+      opSet = opSet
+        .updateIn(
+          ['changes', hashChange(other)],
+          historyChange => historyChange.set('prevChange', hashChange(change))
+        )
+    }
+  }
 
   const remainingDeps = opSet.get('deps')
     .filter((depSeq, depActor) => depSeq > allDeps.get(depActor, 0))
     .set(actor, seq)
-
-  change = change.set('undoLength', 0)
 
   opSet = opSet
     .set('deps', remainingDeps)
@@ -360,9 +408,12 @@ function addChange(opSet, change, isUndoable) {
   }
 }
 
-// Hash a change using only its operations
+// Hash a change
 function hashChange(change) {
-  return change.get('ops').hashCode()
+  return change
+  .delete('actor')
+  .delete('prevChange')
+  .hashCode()
 }
 
 function filterDuplicateChanges(opSet, changes) {
@@ -554,6 +605,6 @@ function listIterator(opSet, listId, context) {
 
 module.exports = {
   init, addChange, filterDuplicateChanges, getMissingChanges, getChangesForActor, getMissingDeps,
-  getObjectFields, getObjectField, getObjectConflicts, getFieldOps,
-  listElemByIndex, listLength, listIterator, ROOT_ID
+  getObjectFields, getObjectField, getObjectConflicts, getFieldOps, hashChange,
+  listElemByIndex, listLength, listIterator, ROOT_ID, handleConcurrentAssignments
 }

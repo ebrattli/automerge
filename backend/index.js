@@ -135,10 +135,10 @@ function init() {
  */
 function makePatch(state, diffs) {
   const canUndo = state.getIn(['opSet', 'undoPos']) > 0
-  const canRedo = !state.getIn(['opSet', 'redoStack']).isEmpty()
+  // const canRedo = !state.getIn(['opSet', 'redoStack']).isEmpty()
   const clock = state.getIn(['opSet', 'clock']).toJS()
   const deps = state.getIn(['opSet', 'deps']).toJS()
-  return {clock, deps, canUndo, canRedo, diffs}
+  return {clock, deps, canUndo, diffs}
 }
 
 /**
@@ -192,6 +192,10 @@ function applyLocalChange(state, change) {
     ;[state, patch] = undo(state, change)
   } else if (change.requestType === 'redo') {
     ;[state, patch] = redo(state, change)
+  } else if (change.requestType === 'undoChange') {
+    ;[state, patch] = undoChange(state, change)
+  } else if (change.requestType === 'redoChange') {
+    ;[state, patch] = redoChange(state, change)
   } else {
     throw new RangeError(`Unknown requestType: ${change.requestType}`)
   }
@@ -247,7 +251,11 @@ function merge(local, remote) {
   const changes = OpSet.getMissingChanges(remote.get('opSet'), local.getIn(['opSet', 'clock']))
   const filteredChanges = OpSet.filterDuplicateChanges(local.get('opSet'), changes)
 
-  return applyChanges(local, filteredChanges)
+  // Add link to concurrent changes on same property
+  const fixedChanges = filteredChanges
+  // const fixedChanges = OpSet.handleConcurrentAssignments(local.get('opSet'), filteredChanges)
+
+  return applyChanges(local, fixedChanges)
 }
 
 function createChange(request, ops) {
@@ -286,8 +294,8 @@ function createUndoOp(opSet, op) {
     const undoOp = Map({
       action: 'del',
       obj: objectId,
-      key: op.get('key'),
-      undoOp: op.filter((v, k) => ['action', 'obj', 'key', 'value', 'datatype'].includes(k))
+      key: op.get('key')
+      // undoOp: op.filter((v, k) => ['action', 'obj', 'key', 'value', 'datatype'].includes(k))
     })
     undoOps = List.of(undoOp)
   }
@@ -322,15 +330,39 @@ function undo(state, request) {
   //   .update('redoStack', stack => stack.push(redoOps))
 
   const opSet = state.get('opSet')
+
+  // state = state.set(
+  //   'opSet', opSet.set('undoPos', undoPos - 1)
+  // )
+
   const lastChange = opSet.get('history').get(0)
-  return undoChange(state, request, lastChange)
+
+  return undoChange(state, {...request, change: lastChange})
 }
 
-function undoChange(state, request, change) {
+function undoChange(state, request) {
+  let undoOps;
+  const change = fromJS(request.change)
   const opSet = state.get('opSet')
-  const undoOps = createUndoOps(opSet, change.get('ops'))
+
+  const concurrent = opSet.getIn(['changes', OpSet.hashChange(change), 'prevChange'])
+  if (concurrent){
+    undoOps = opSet
+    .getIn(['changes', concurrent, 'ops'])
+  } else {
+    undoOps = createUndoOps(opSet, change.get('ops'))
+  }
+
   const { actor, seq, deps, message } = request
-  const undoChange = Map({ actor, seq, deps: fromJS(deps), message, ops: undoOps })
+  const undoChange = Map({
+    actor,
+    seq,
+    deps: fromJS(deps),
+    message,
+    ops: undoOps,
+    undoLength: change.get('undoLength') + 1,
+    prevChange: OpSet.hashChange(change)
+  })
 
   const [newOpSet, diffs] = OpSet.addChange(opSet, undoChange, false)
   state = state.set('opSet', newOpSet)
@@ -355,6 +387,24 @@ function redo(state, request) {
   const change = Map({ actor, seq, deps: fromJS(deps), message, ops: redoOps })
 
   const [newOpSet, diffs] = OpSet.addChange(opSet, change, false)
+  state = state.set('opSet', newOpSet)
+  return [state, makePatch(state, diffs)]
+}
+
+function getRedoOps(opSet, change) {
+  const prevChange = opSet.getIn(['changes', change.get('prevChange')])
+  return prevChange.get('ops')
+}
+
+function redoChange(state, request) {
+  const opSet = state.get('opSet')
+  const change = fromJS(request.change)
+  const { actor, seq, deps, message } = request
+
+  const redoOps = getRedoOps(opSet, change)
+  const newChange = Map({ actor, seq, deps: fromJS(deps), message, ops: redoOps })
+
+  const [newOpSet, diffs] = OpSet.addChange(opSet, newChange, false)
   state = state.set('opSet', newOpSet)
   return [state, makePatch(state, diffs)]
 }

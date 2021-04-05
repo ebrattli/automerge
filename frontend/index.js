@@ -106,6 +106,9 @@ function makeChange(doc, requestType, context, options) {
   if (context) {
     request.ops = ensureSingleAssignment(context.ops)
   }
+  if (options && options.change) {
+    request.change = options.change
+  }
 
   if (doc[OPTIONS].backend) {
     const [backendState, patch] = doc[OPTIONS].backend.applyLocalChange(state.backendState, request)
@@ -401,6 +404,24 @@ function undo(doc, options) {
   return makeChange(doc, 'undo', null, options)
 }
 
+function undoChange(doc, change, options) {
+  if (typeof options === 'string') {
+    options = {message: options}
+  }
+  if (options !== undefined && !isObject(options)) {
+    throw new TypeError('Unsupported type of options')
+  }
+
+  if (isUndoRedoInFlight(doc)) {
+    throw new Error('Can only have one undo in flight at any one time')
+  }
+  if (options == undefined) {
+    options = {}
+  }
+  options['change'] = change
+  return makeChange(doc, 'undoChange', null, options)
+}
+
 /**
  * Returns `true` if redo is currently possible on the document `doc` (because
  * a prior action was an undo that has not already been redone); `false` if not.
@@ -426,13 +447,33 @@ function redo(doc, options) {
   if (options !== undefined && !isObject(options)) {
     throw new TypeError('Unsupported type of options')
   }
-  if (!doc[STATE].canRedo) {
-    throw new Error('Cannot redo: there is no prior undo')
-  }
+  // if (!doc[STATE].canRedo) {
+  //   throw new Error('Cannot redo: there is no prior undo')
+  // }
   if (isUndoRedoInFlight(doc)) {
     throw new Error('Can only have one redo in flight at any one time')
   }
   return makeChange(doc, 'redo', null, options)
+}
+
+function redoChange(doc, change, options) {
+  if (typeof options === 'string') {
+    options = {message: options}
+  }
+  if (options !== undefined && !isObject(options)) {
+    throw new TypeError('Unsupported type of options')
+  }
+  // if (!doc[STATE].canRedo) {
+  //   throw new Error('Cannot redo: there is no prior undo')
+  // }
+  if (isUndoRedoInFlight(doc)) {
+    throw new Error('Can only have one redo in flight at any one time')
+  }
+  if (options == undefined) {
+    options = {}
+  }
+  options['change'] = change
+  return makeChange(doc, 'redoChange', null, options)
 }
 
 /**
@@ -494,7 +535,7 @@ function getElementIds(list) {
 
 module.exports = {
   init, from, change, emptyChange, applyPatch,
-  canUndo, undo, canRedo, redo,
+  canUndo, undo, canRedo, redo, undoChange, redoChange,
   getObjectId, getObjectById, getActorId, setActorId, getConflicts,
   getBackendState, getElementIds,
   Text, Table, Counter
